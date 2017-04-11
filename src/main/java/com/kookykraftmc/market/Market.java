@@ -25,7 +25,6 @@ import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
-import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -41,8 +40,6 @@ import org.spongepowered.api.service.pagination.PaginationService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.text.format.TextStyles;
-import org.spongepowered.api.text.translation.Translation;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -240,13 +237,13 @@ public class Market {
         updateUUIDCache(player.getUniqueId().toString(), player.getName());
     }
 
-    public void updateUUIDCache(String uuid, String name) {
+    private void updateUUIDCache(String uuid, String name) {
         try (Jedis jedis = getJedis().getResource()) {
             jedis.hset(RedisKeys.UUID_CACHE, uuid, name);
         }
     }
 
-    public ConfigurationLoader<CommentedConfigurationNode> getConfigManager() {
+    private ConfigurationLoader<CommentedConfigurationNode> getConfigManager() {
         return configManager;
     }
 
@@ -273,7 +270,7 @@ public class Market {
         return new JedisPool(config, host, port, 0, password);
     }
 
-    public JedisPool getJedis() {
+    private JedisPool getJedis() {
         if (jedisPool == null) {
             if (this.cfg.getNode("redis", "use-password").getBoolean()) {
                 return setupRedis(this.redisHost, this.redisPort, this.redisPass);
@@ -289,11 +286,11 @@ public class Market {
         return game.getServiceManager().provide(PaginationService.class).get();
     }
 
-    public String getServerName() {
+    private String getServerName() {
         return serverName;
     }
 
-    public Game getGame() {
+    private Game getGame() {
         return game;
     }
 
@@ -338,7 +335,7 @@ public class Market {
         return commands;
     }
 
-    public String serializeItem(ItemStack itemStack) {
+    private String serializeItem(ItemStack itemStack) {
         ConfigurationNode node = DataTranslators.CONFIGURATION_NODE.translate(itemStack.toContainer());
         StringWriter stringWriter = new StringWriter();
         try {
@@ -349,7 +346,7 @@ public class Market {
         return stringWriter.toString();
     }
 
-    public Optional<ItemStack> deserializeItemStack(String item) {
+    private Optional<ItemStack> deserializeItemStack(String item) {
         ConfigurationNode node = null;
         try {
             node = HoconConfigurationLoader.builder().setSource(() -> new BufferedReader(new StringReader(item))).build().load();
@@ -500,9 +497,17 @@ public class Market {
             List<Text> texts = new ArrayList<>();
             //replace with item if key is "Item", replace uuid with name from Vote4Dis cache.
             listing.forEach((key, value) -> {
-                if (key.equals("Item")) texts.add(Texts.quickItemFormat(deserializeItemStack(value).get()));
-                else if (key.equals("Seller")) texts.add(Text.of("Seller: " + jedis.hget(RedisKeys.UUID_CACHE, value)));
-                else texts.add(Text.of(key + ": " + value));
+                switch (key) {
+                    case "Item":
+                        texts.add(Texts.quickItemFormat(deserializeItemStack(value).get()));
+                        break;
+                    case "Seller":
+                        texts.add(Text.of("Seller: " + jedis.hget(RedisKeys.UUID_CACHE, value)));
+                        break;
+                    default:
+                        texts.add(Text.of(key + ": " + value));
+                        break;
+                }
             });
 
             texts.add(Text.builder()
@@ -601,7 +606,7 @@ public class Market {
         }
     }
 
-    public void addIDToBlackList(String id) {
+    private void addIDToBlackList(String id) {
         blacklistedItems.add(id);
     }
 
@@ -623,7 +628,7 @@ public class Market {
         return getPaginationService().builder().contents(texts).title(Text.of(TextColors.GREEN, "Market Blacklist")).build();
     }
 
-    public void rmIDFromBlackList(String message) {
+    private void rmIDFromBlackList(String message) {
         blacklistedItems.remove(message);
     }
 
