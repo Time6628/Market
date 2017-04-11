@@ -1,0 +1,49 @@
+plugins {
+    id 'org.spongepowered.plugin' version '0.8.1'
+    id 'com.qixalite.spongestart' version '1.6.0'
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
+    id 'java'
+}
+
+group = pluginGroup
+version = pluginVersion
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven {
+        name 'sonatype'
+        url 'http://oss.sonatype.org/content/repositories/snapshots/'
+    }
+}
+dependencies {
+    compile 'org.spongepowered:spongeapi:6.+'
+    shadow 'redis.clients:jedis:2.9.0'
+    shadow 'org.apache.commons:commons-pool2:2.4.2'
+
+}
+
+configurations {
+    compile.extendsFrom shadow
+}
+
+sponge.plugin.id = pluginId
+
+shadowJar {
+
+    configurations = [project.configurations.shadow]
+    dependencies {
+        include dependency('redis.clients:jedis')
+        include dependency('org.apache.commons:commons-pool2')
+    }
+
+    relocate 'org.apache', 'com.kookykraftmc.relocate.relocate.org.apache'
+    relocate 'redis.clients', 'com.kookykraftmc.relocate.redis.clients'
+
+    archiveName = 'Market-0.1.jar'
+}
+
+build.dependsOn(shadowJar)
+jar.enabled = false
+
+
