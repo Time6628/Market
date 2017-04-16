@@ -286,7 +286,7 @@ public class Market {
         return game.getServiceManager().provide(PaginationService.class).get();
     }
 
-    private String getServerName() {
+    public String getServerName() {
         return serverName;
     }
 
