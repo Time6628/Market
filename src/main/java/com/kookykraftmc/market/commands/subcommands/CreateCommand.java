@@ -34,8 +34,8 @@ public class CreateCommand implements CommandExecutor {
                     return CommandResult.success();
                 }
                 Optional<Integer> oprice = args.getOne(Text.of("price"));
-                if (oprice.isPresent()) {
-                    int price = oprice.get();
+                oprice.ifPresent(integer -> {
+                    int price = integer;
                     int v = pl.addListing(player, itemStack, quan, price);
                     if (v == 0) player.sendMessage(Texts.COULD_NOT_MAKE_LISTNG);
                     else if (v == -1) player.sendMessage(Texts.USE_ADD_STOCK);
@@ -43,7 +43,7 @@ public class CreateCommand implements CommandExecutor {
                         pl.getListing(String.valueOf(v)).sendTo(src);
                         player.setItemInHand(HandTypes.MAIN_HAND, null);
                     }
-                }
+                });
             }
         } else {
             player.sendMessage(Texts.AIR_ITEM);

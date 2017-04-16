@@ -27,16 +27,15 @@ public class RemoveListingCommand implements CommandExecutor {
 
         Player player = (Player) src;
         Optional<String> oid = args.getOne(Text.of("id"));
-        if (oid.isPresent()) {
-            List<ItemStack> is = pl.removeListing(oid.get(), player.getUniqueId().toString(), player.hasPermission("market.command.staff.removelisting"));
+        oid.ifPresent(s -> {
+            List<ItemStack> is = pl.removeListing(s, player.getUniqueId().toString(), player.hasPermission("market.command.staff.removelisting"));
             if (is != null) {
                 for (ItemStack i : is) {
                     player.getInventory().query(Hotbar.class, GridInventory.class).offer(i);
                 }
-                player.sendMessage(Text.of(TextColors.GREEN, "Removed listing " + oid.get() + "."));
-            }
-            else player.sendMessage(Texts.INVALID_LISTING);
-        }
+                player.sendMessage(Text.of(TextColors.GREEN, "Removed listing " + s + "."));
+            } else player.sendMessage(Texts.INVALID_LISTING);
+        });
         return CommandResult.success();
     }
 }

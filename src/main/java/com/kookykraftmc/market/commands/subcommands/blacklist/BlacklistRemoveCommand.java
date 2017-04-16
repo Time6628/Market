@@ -18,12 +18,12 @@ public class BlacklistRemoveCommand implements CommandExecutor {
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         Optional<String> oid = args.getOne("id");
-        if (oid.isPresent()) {
-            String id = oid.get();
+        oid.ifPresent(s1 -> {
+            String id = s1;
             boolean s = pl.blacklistRemoveCmd(id);
             if (s) src.sendMessage(Texts.BLACKLIST_REMOVED);
             else src.sendMessage(Texts.BLACKLIST_REMOVED_FAIL);
-        }
+        });
         return CommandResult.success();
     }
 }
