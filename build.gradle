@@ -20,7 +20,6 @@ dependencies {
     compile 'org.spongepowered:spongeapi:6.+'
     shadow 'redis.clients:jedis:2.9.0'
     shadow 'org.apache.commons:commons-pool2:2.4.2'
-
 }
 
 configurations {

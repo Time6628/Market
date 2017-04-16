@@ -9,12 +9,6 @@ import redis.clients.jedis.JedisPubSub;
 public class RedisPubSub extends JedisPubSub {
     Market market = Market.instance;
 
-    public void sendMessage(String channel, String message) {
-        try (Jedis jedis = market.getJedis().getResource()) {
-            jedis.publish(channel, message);
-        }
-    }
-
     @Override
     public void onMessage(String channel, String message) {
         if (channel.equals(Channels.marketBlacklistAdd)) market.addIDToBlackList(message);

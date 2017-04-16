@@ -16,12 +16,10 @@ public class Texts {
     public static Text INV_FULL = Text.builder().color(TextColors.RED).append(Text.of("Unable to add the item to your inventory. Please make sure it is not full. Will try to add the item to your inventory again in 30 seconds.")).build();
     public static Text PURCHASE_SUCCESSFUL = Text.builder().color(TextColors.GREEN).append(Text.of("Purchase successful and the item has been added to your inventory.")).build();
     public static Text USE_ADD_STOCK = Text.builder().color(TextColors.RED).append(Text.of("You already have a listing of a similar item, please use /market addstock <listing id>.")).build();
-    public static Text SERVER_RESTARTING = Text.builder().append(Text.of(TextColors.LIGHT_PURPLE, "Server is restarting in")).append(Text.of(TextColors.WHITE, " 5 ")).append(Text.of(TextColors.LIGHT_PURPLE, "minutes.")).build();
 
     public static Text MARKET_LISTING(String id) { return Text.builder().color(TextColors.GREEN).append(Text.of("Market Listing " + id)).build(); }
     public static Text MARKET_LISTINGS = Text.builder().color(TextColors.GREEN).append(Text.of("Market Listings")).build();
     public static Text MARKET_SEARCH = Text.builder().color(TextColors.GREEN).append(Text.of("Search Results")).build();
-    public static Text MARKET_CREATE = Text.builder().color(TextColors.GREEN).append(Text.of("Market Create")).build();
     public static Text AIR_ITEM = Text.builder().color(TextColors.RED).append(Text.of("Please hold something in your hand.")).build();
     public static Text COULD_NOT_MAKE_LISTNG = Text.builder().color(TextColors.RED).append(Text.of("Could not make listing, sorry.")).build();
     public static Text COULD_NOT_ADD_STOCK = Text.builder().color(TextColors.RED).append(Text.of("Unable to add stock. This means the item you are holding has different data then the item you listed before.")).build();

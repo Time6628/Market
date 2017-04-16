@@ -270,7 +270,7 @@ public class Market {
         return new JedisPool(config, host, port, 0, password);
     }
 
-    private JedisPool getJedis() {
+    public JedisPool getJedis() {
         if (jedisPool == null) {
             if (this.cfg.getNode("redis", "use-password").getBoolean()) {
                 return setupRedis(this.redisHost, this.redisPort, this.redisPass);
@@ -606,7 +606,7 @@ public class Market {
         }
     }
 
-    private void addIDToBlackList(String id) {
+    public void addIDToBlackList(String id) {
         blacklistedItems.add(id);
     }
 
@@ -628,7 +628,7 @@ public class Market {
         return getPaginationService().builder().contents(texts).title(Text.of(TextColors.GREEN, "Market Blacklist")).build();
     }
 
-    private void rmIDFromBlackList(String message) {
+    public void rmIDFromBlackList(String message) {
         blacklistedItems.remove(message);
     }
 
