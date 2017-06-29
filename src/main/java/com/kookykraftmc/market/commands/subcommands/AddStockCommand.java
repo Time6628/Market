@@ -26,9 +26,9 @@ public class AddStockCommand implements CommandExecutor {
         if (ois.isPresent()) {
             Optional<String> oid = args.getOne(Text.of("id"));
             oid.ifPresent(s -> {
-                boolean result = pl.addStock(ois.get(), s, player.getUniqueId());
+                boolean result = pl.getDataStore().addStock(ois.get(), s, player.getUniqueId());
                 if (result) {
-                    pl.getListing(s).sendTo(player);
+                    pl.getDataStore().getListing(s).sendTo(player);
                     player.setItemInHand(HandTypes.MAIN_HAND, null);
                 } else player.sendMessage(Texts.COULD_NOT_ADD_STOCK);
             });

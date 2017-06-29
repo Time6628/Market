@@ -6,6 +6,10 @@ import com.kookykraftmc.market.commands.MarketCommand;
 import com.kookykraftmc.market.commands.subcommands.*;
 import com.kookykraftmc.market.commands.subcommands.blacklist.BlacklistAddCommand;
 import com.kookykraftmc.market.commands.subcommands.blacklist.BlacklistRemoveCommand;
+import com.kookykraftmc.market.datastores.DataStore;
+import com.kookykraftmc.market.datastores.RedisDataStore;
+import com.kookykraftmc.market.datastores.RedisKeys;
+import com.kookykraftmc.market.datastores.RedisPubSub;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -72,14 +76,9 @@ public class Market {
     private ConfigurationLoader<CommentedConfigurationNode> configManager;
 
     private String serverName;
-    private int redisPort;
-    private String redisHost;
-    private String redisPass;
-    private JedisPool jedisPool;
-    private RedisPubSub sub;
+    public NamedCause marketCause;
 
-    private NamedCause marketCause;
-    private List<String> blacklistedItems;
+    private DataStore dataStore;
 
     @Listener
     public void onPreInit(GamePreInitializationEvent event) {
@@ -92,6 +91,7 @@ public class Market {
 
                 this.cfg.getNode("Market", "Sponge", "Version").setValue(0.1);
 
+                this.cfg.getNode("Redis", "Enabled").setValue(true);
                 this.cfg.getNode("Redis", "Host").setValue("localhost");
                 this.cfg.getNode("Redis", "Port").setValue(6379);
                 this.cfg.getNode("Redis", "Use-password").setValue(false);
@@ -104,17 +104,6 @@ public class Market {
 
             this.cfg = this.configManager.load();
 
-            this.redisPort = cfg.getNode("Redis", "Port").getInt();
-            this.redisHost = cfg.getNode("Redis", "Host").getString();
-            this.redisPass = cfg.getNode("Redis", "Password").getString();
-            this.serverName = cfg.getNode("Market", "Sponge", "Server").getString();
-
-            if (this.cfg.getNode("Redis", "Use-password").getBoolean()) {
-                jedisPool = setupRedis(this.redisHost, this.redisPort, this.redisPass);
-            } else {
-                jedisPool = setupRedis(this.redisHost, this.redisPort);
-            }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -125,11 +114,19 @@ public class Market {
         instance = this;
         marketCause = NamedCause.of("Market", this);
 
-        try (Jedis jedis = getJedis().getResource()) {
-            blacklistedItems = Lists.newArrayList(jedis.hgetAll(RedisKeys.BLACKLIST).keySet());
-        }
 
-        subscribe();
+        if (cfg.getNode("Redis", "Enabled").getBoolean()) {
+            int redisPort = cfg.getNode("Redis", "Port").getInt();
+            String redisHost = cfg.getNode("Redis", "Host").getString();
+            String redisPass = cfg.getNode("Redis", "Password").getString();
+            this.serverName = cfg.getNode("Market", "Sponge", "Server").getString();
+
+            if (this.cfg.getNode("Redis", "Use-password").getBoolean()) {
+                dataStore = new RedisDataStore(redisHost, redisPort, redisPass);
+            } else {
+                dataStore = new RedisDataStore(redisHost, redisPort);
+            }
+        }
 
         CommandSpec createMarketCmd = CommandSpec.builder()
                 .executor(new CreateCommand())
@@ -234,30 +231,10 @@ public class Market {
 
     @Listener
     public void onPlayerJoin(ClientConnectionEvent.Join event, @Getter("getTargetEntity") Player player) {
-        updateUUIDCache(player.getUniqueId().toString(), player.getName());
+        getDataStore().updateUUIDCache(player);
     }
 
-    private void updateUUIDCache(String uuid, String name) {
-        try (Jedis jedis = getJedis().getResource()) {
-            jedis.hset(RedisKeys.UUID_CACHE, uuid, name);
-        }
-    }
-
-    private ConfigurationLoader<CommentedConfigurationNode> getConfigManager() {
-        return configManager;
-    }
-
-    void subscribe() {
-        getScheduler().createAsyncExecutor(this)
-                .execute(() -> {
-                    sub = new RedisPubSub();
-                    try (Jedis jedis = getJedis().getResource()) {
-                        jedis.subscribe(sub, RedisPubSub.Channels.channels);
-                    }
-                });
-    }
-
-    //////////////////////////////// REDIS ////////////////////////////////
+    /*////////////////////////////// REDIS /////////////////////////////////
     private JedisPool setupRedis(String host, int port) {
         JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxTotal(128);
@@ -280,7 +257,7 @@ public class Market {
         } else {
             return jedisPool;
         }
-    }
+    }*/
 
     public PaginationService getPaginationService() {
         return game.getServiceManager().provide(PaginationService.class).get();
@@ -335,7 +312,7 @@ public class Market {
         return commands;
     }
 
-    private String serializeItem(ItemStack itemStack) {
+    public String serializeItem(ItemStack itemStack) {
         ConfigurationNode node = DataTranslators.CONFIGURATION_NODE.translate(itemStack.toContainer());
         StringWriter stringWriter = new StringWriter();
         try {
@@ -346,7 +323,7 @@ public class Market {
         return stringWriter.toString();
     }
 
-    private Optional<ItemStack> deserializeItemStack(String item) {
+    public Optional<ItemStack> deserializeItemStack(String item) {
         ConfigurationNode node = null;
         try {
             node = HoconConfigurationLoader.builder().setSource(() -> new BufferedReader(new StringReader(item))).build().load();
@@ -357,356 +334,25 @@ public class Market {
         return getGame().getDataManager().deserialize(ItemStack.class, dataView);
     }
 
-    public int addListing(Player player, ItemStack itemStack, int quantityPerSale, int price) {
-        try (Jedis jedis = getJedis().getResource()) {
-            //if there are fewer items than they want to sell every time, return 0
-            if (itemStack.getQuantity() < quantityPerSale || quantityPerSale <= 0 || isBlacklisted(itemStack)) return 0;
-            if (!jedis.exists(RedisKeys.LAST_MARKET_ID)) {
-                jedis.set(RedisKeys.LAST_MARKET_ID, String.valueOf(1));
-                int id = 1;
-                String key = RedisKeys.MARKET_ITEM_KEY(String.valueOf(id));
-                Transaction m = jedis.multi();
-                m.hset(key, "Item", serializeItem(itemStack));
-                m.hset(key, "Seller", player.getUniqueId().toString());
-                m.hset(key, "Stock", String.valueOf(itemStack.getQuantity()));
-                m.hset(key, "Price", String.valueOf(price));
-                m.hset(key, "Quantity", String.valueOf(quantityPerSale));
-                m.exec();
-
-                jedis.hset(RedisKeys.FOR_SALE, String.valueOf(id), player.getUniqueId().toString());
-
-                jedis.incr(RedisKeys.LAST_MARKET_ID);
-
-                return id;
-            } else {
-                int id = Integer.parseInt(jedis.get(RedisKeys.LAST_MARKET_ID));
-                String key = RedisKeys.MARKET_ITEM_KEY(String.valueOf(id));
-                if (checkForOtherListings(itemStack, player.getUniqueId().toString())) return -1;
-
-                Transaction m = jedis.multi();
-                m.hset(key, "Item", serializeItem(itemStack));
-                m.hset(key, "Seller", player.getUniqueId().toString());
-                m.hset(key, "Stock", String.valueOf(itemStack.getQuantity()));
-                m.hset(key, "Price", String.valueOf(price));
-                m.hset(key, "Quantity", String.valueOf(quantityPerSale));
-                m.exec();
-
-                jedis.hset(RedisKeys.FOR_SALE, String.valueOf(id), player.getUniqueId().toString());
-
-                jedis.incr(RedisKeys.LAST_MARKET_ID);
-
-                return id;
-            }
-        }
-    }
-
-    private boolean checkForOtherListings(ItemStack itemStack, String s) {
-        try (Jedis jedis = getJedis().getResource()) {
-            Map<String, String> d = jedis.hgetAll(RedisKeys.FOR_SALE);
-
-            Map<String, String> e = d.entrySet().stream().filter(stringStringEntry -> stringStringEntry.getValue().equals(s)).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            if (e.size() == 0) return false;
-            else {
-                final boolean[] hasOther = {false};
-                e.forEach((s1, s2) -> {
-                    Optional<ItemStack> ooi = deserializeItemStack(jedis.hget(RedisKeys.MARKET_ITEM_KEY(s1), "Item"));
-                    if (!ooi.isPresent()) return;
-                    if (matchItemStacks(ooi.get(), itemStack)) {
-                        hasOther[0] = true;
-                    }
-                });
-                return hasOther[0];
-            }
-        }
-    }
-
-    public PaginationList getListings() {
-        try (Jedis jedis = getJedis().getResource()) {
-            Set<String> openListings = jedis.hgetAll(RedisKeys.FOR_SALE).keySet();
-            List<Text> texts = new ArrayList<>();
-            for (String openListing : openListings) {
-                Map<String, String> listing = jedis.hgetAll(RedisKeys.MARKET_ITEM_KEY(openListing));
-                Text.Builder l = Text.builder();
-                Optional<ItemStack> is = deserializeItemStack(listing.get("Item"));
-                if (!is.isPresent()) continue;
-                l.append(Texts.quickItemFormat(is.get()));
-                l.append(Text.of(" "));
-                l.append(Text.of(TextColors.WHITE, "@"));
-                l.append(Text.of(" "));
-                l.append(Text.of(TextColors.GREEN, "$" + listing.get("Price")));
-                l.append(Text.of(" "));
-                l.append(Text.of(TextColors.WHITE, "for"));
-                l.append(Text.of(" "));
-                l.append(Text.of(TextColors.GREEN, listing.get("Quantity") + "x"));
-                l.append(Text.of(" "));
-                l.append(Text.of(TextColors.WHITE, "Seller:"));
-                l.append(Text.of(TextColors.LIGHT_PURPLE, " " + jedis.hget(RedisKeys.UUID_CACHE, listing.get("Seller"))));
-                l.append(Text.of(" "));
-                l.append(Text.builder()
-                        .color(TextColors.GREEN)
-                        .onClick(TextActions.runCommand("/market check " + openListing))
-                        .append(Text.of("[Info]"))
-                        .onHover(TextActions.showText(Text.of("View more info about this listing.")))
-                        .build());
-
-                texts.add(l.build());
-            }
-            return getPaginationService().builder().contents(texts).title(Texts.MARKET_LISTINGS).build();
-        }
-    }
-
-    public List<ItemStack> removeListing(String id, String uuid, boolean staff) {
-        try (Jedis jedis = getJedis().getResource()) {
-            if (!jedis.hexists(RedisKeys.FOR_SALE, id)) return null;
-            else {
-                //get info about the listing
-                Map<String, String> listing = jedis.hgetAll(RedisKeys.MARKET_ITEM_KEY(id));
-                //check to see if the uuid matches the seller, or the user is a staff member
-                if (!listing.get("Seller").equals(uuid) && !staff) return null;
-                //get how much stock it has
-                int inStock = Integer.parseInt(listing.get("Stock"));
-                //deserialize the item
-                ItemStack listingIS = deserializeItemStack(listing.get("Item")).get();
-                //calculate the amount of stacks to make
-                int stacksInStock = inStock / listingIS.getMaxStackQuantity();
-                //new list for stacks
-                List<ItemStack> stacks = new ArrayList<>();
-                //until all stacks are pulled out, keep adding more stacks to stacks
-                for (int i = 0; i < stacksInStock; i++) {
-                    stacks.add(listingIS.copy());
-                }
-                if (inStock % listingIS.getMaxStackQuantity() != 0) {
-                    ItemStack extra = listingIS.copy();
-                    extra.setQuantity(inStock % listingIS.getMaxStackQuantity());
-                    stacks.add(extra);
-                }
-                //remove from the listings
-                jedis.hdel(RedisKeys.FOR_SALE, id);
-                return stacks;
-            }
-        }
-    }
-
-    public PaginationList getListing(String id) {
-        try (Jedis jedis = getJedis().getResource()) {
-            //if the item is not for sale, do not get the listing
-            if (!jedis.hexists(RedisKeys.FOR_SALE, id)) return null;
-            //get info about the listing
-            Map<String, String> listing = jedis.hgetAll(RedisKeys.MARKET_ITEM_KEY(id));
-            //create list of Texts for pages
-            List<Text> texts = new ArrayList<>();
-            //replace with item if key is "Item", replace uuid with name from Vote4Dis cache.
-            listing.forEach((key, value) -> {
-                switch (key) {
-                    case "Item":
-                        texts.add(Texts.quickItemFormat(deserializeItemStack(value).get()));
-                        break;
-                    case "Seller":
-                        texts.add(Text.of("Seller: " + jedis.hget(RedisKeys.UUID_CACHE, value)));
-                        break;
-                    default:
-                        texts.add(Text.of(key + ": " + value));
-                        break;
-                }
-            });
-
-            texts.add(Text.builder()
-                    .append(Text.builder()
-                            .color(TextColors.GREEN)
-                            .append(Text.of("[Buy]"))
-                            .onClick(TextActions.suggestCommand("/market buy " + id))
-                            .build())
-                    .append(Text.of(" "))
-                    .append(Text.builder()
-                            .color(TextColors.GREEN)
-                            .append(Text.of("[QuickBuy]"))
-                            .onClick(TextActions.runCommand("/market buy " + id))
-                            .onHover(TextActions.showText(Text.of("Click here to run the command to buy the item.")))
-                            .build())
-                    .build());
-
-            return getPaginationService().builder().title(Texts.MARKET_LISTING(id)).contents(texts).build();
-        }
-    }
-
-    public boolean addStock(ItemStack itemStack, String id, UUID uuid) {
-        try (Jedis jedis = getJedis().getResource()) {
-            if (!jedis.hexists(RedisKeys.FOR_SALE, id)) return false;
-            else if (!jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Seller").equals(uuid.toString())) return false;
-            else {
-                ItemStack listingStack = deserializeItemStack(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Item")).get();
-                //if the stack in the listing matches the stack it's trying to add, add it to the stack
-                if (matchItemStacks(listingStack, itemStack)) {
-                    int stock = Integer.parseInt(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Stock"));
-                    int quan = itemStack.getQuantity() + stock;
-                    jedis.hset(RedisKeys.MARKET_ITEM_KEY(id), "Stock", String.valueOf(quan));
-                    return true;
-                } else return false;
-            }
-        }
-    }
-
-    private boolean matchItemStacks(ItemStack is0, ItemStack is1) {
+    public boolean matchItemStacks(ItemStack is0, ItemStack is1) {
         boolean type = ItemStackComparators.TYPE.compare(is0, is1) == 0;
         boolean data = ItemStackComparators.ITEM_DATA.compare(is0, is1) == 0;
         return type && data;
-    }
-
-    public ItemStack purchase(UniqueAccount uniqueAccount, String id) {
-        try (Jedis jedis = getJedis().getResource()) {
-            if (!jedis.hexists(RedisKeys.FOR_SALE, id)) return null;
-            else {
-                TransactionResult tr = uniqueAccount.transfer(getEconomyService().getOrCreateAccount(UUID.fromString(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Seller"))).get(), getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(Long.parseLong(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Price"))), Cause.of(marketCause));
-                if (tr.getResult().equals(ResultType.SUCCESS)) {
-                    //get the itemstack
-                    ItemStack is = deserializeItemStack(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Item")).get();
-                    //get the quantity per sale
-                    int quant = Integer.parseInt(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Quantity"));
-                    //get the amount in stock
-                    int inStock = Integer.parseInt(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Stock"));
-                    //get the new quantity
-                    int newQuant = inStock - quant;
-                    //if the new quantity is less than the quantity to be sold, expire the listing
-                    if (newQuant < quant) {
-                        jedis.hdel(RedisKeys.FOR_SALE, id);
-                    } else {
-                        jedis.hset(RedisKeys.MARKET_ITEM_KEY(id), "Stock", String.valueOf(newQuant));
-                    }
-                    ItemStack nis = is.copy();
-                    nis.setQuantity(quant);
-                    return nis;
-                } else {
-                    return null;
-                }
-            }
-        }
     }
 
     public EconomyService getEconomyService() {
         return game.getServiceManager().provide(EconomyService.class).get();
     }
 
-    public boolean blacklistAddCmd(String id) {
-        try (Jedis jedis = getJedis().getResource()) {
-            if (jedis.hexists(RedisKeys.BLACKLIST, id)) return false;
-            else
-                jedis.hset(RedisKeys.BLACKLIST, id, String.valueOf(true));
-            jedis.publish(RedisPubSub.Channels.marketBlacklistAdd, id);
-            return true;
-        }
-    }
-
-    public boolean blacklistRemoveCmd(String id) {
-        try (Jedis jedis = getJedis().getResource()) {
-            if (!jedis.hexists(RedisKeys.BLACKLIST, id)) return false;
-            else
-                jedis.hdel(RedisKeys.BLACKLIST, id);
-            jedis.publish(RedisPubSub.Channels.marketBlacklistRemove, id);
-            return true;
-        }
-    }
-
-    public void addIDToBlackList(String id) {
-        blacklistedItems.add(id);
-    }
-
-    private List<String> getBlacklistedItems() {
-        return blacklistedItems;
-    }
-
-    private boolean isBlacklisted(ItemStack itemStack) {
-        Optional<BlockType> type = itemStack.getItem().getBlock();
-        String id = type.map(blockType -> blockType.getDefaultState().getId()).orElseGet(() -> itemStack.getItem().getId());
-        return blacklistedItems.contains(id);
-    }
-
-    public PaginationList getBlacklistedItemList() {
-        List<Text> texts = new ArrayList<>();
-        for (String blacklistedItem : getBlacklistedItems()) {
-            texts.add(Text.of(blacklistedItem));
-        }
-        return getPaginationService().builder().contents(texts).title(Text.of(TextColors.GREEN, "Market Blacklist")).build();
-    }
-
-    public void rmIDFromBlackList(String message) {
-        blacklistedItems.remove(message);
-    }
-
-    public PaginationList searchForItem(ItemType itemType) {
-        try (Jedis jedis = getJedis().getResource()) {
-            Set<String> openListings = jedis.hgetAll(RedisKeys.FOR_SALE).keySet();
-            List<Text> texts = new ArrayList<>();
-            for (String openListing : openListings) {
-                Map<String, String> listing = jedis.hgetAll(RedisKeys.MARKET_ITEM_KEY(openListing));
-                Text.Builder l = Text.builder();
-                Optional<ItemStack> is = deserializeItemStack(listing.get("Item"));
-                if (!is.isPresent()) continue;
-                if (is.get().getItem().equals(itemType)) {
-                    l.append(Texts.quickItemFormat(is.get()));
-                    l.append(Text.of(" "));
-                    l.append(Text.of(TextColors.WHITE, "@"));
-                    l.append(Text.of(" "));
-                    l.append(Text.of(TextColors.GREEN, "$" + listing.get("Price")));
-                    l.append(Text.of(" "));
-                    l.append(Text.of(TextColors.WHITE, "for"));
-                    l.append(Text.of(" "));
-                    l.append(Text.of(TextColors.GREEN, listing.get("Quantity") + "x"));
-                    l.append(Text.of(" "));
-                    l.append(Text.of(TextColors.WHITE, "Seller:"));
-                    l.append(Text.of(TextColors.LIGHT_PURPLE, " " + jedis.hget("vote4dis:uuidcache", listing.get("Seller"))));
-                    l.append(Text.of(" "));
-                    l.append(Text.builder()
-                            .color(TextColors.GREEN)
-                            .onClick(TextActions.runCommand("/market check " + openListing))
-                            .append(Text.of("[Info]"))
-                            .onHover(TextActions.showText(Text.of("View more info about this listing.")))
-                            .build());
-                    texts.add(l.build());
-                }
-            }
-            if (texts.size() == 0) texts.add(Text.of(TextColors.RED, "No listings found."));
-            return getPaginationService().builder().contents(texts).title(Texts.MARKET_SEARCH).build();
-        }
-    }
-
-    public PaginationList searchForUUID(UUID uniqueId) {
-        try (Jedis jedis = getJedis().getResource()) {
-            Set<String> openListings = jedis.hgetAll(RedisKeys.FOR_SALE).keySet();
-            List<Text> texts = new ArrayList<>();
-            for (String openListing : openListings) {
-                Map<String, String> listing = jedis.hgetAll(RedisKeys.MARKET_ITEM_KEY(openListing));
-                if (listing.get("Seller").equals(uniqueId.toString())) {
-                    Text.Builder l = Text.builder();
-                    Optional<ItemStack> is = deserializeItemStack(listing.get("Item"));
-                    if (!is.isPresent()) continue;
-                    l.append(Texts.quickItemFormat(is.get()));
-                    l.append(Text.of(" "));
-                    l.append(Text.of(TextColors.WHITE, "@"));
-                    l.append(Text.of(" "));
-                    l.append(Text.of(TextColors.GREEN, "$" + listing.get("Price")));
-                    l.append(Text.of(" "));
-                    l.append(Text.of(TextColors.WHITE, "for"));
-                    l.append(Text.of(" "));
-                    l.append(Text.of(TextColors.GREEN, listing.get("Quantity") + "x"));
-                    l.append(Text.of(" "));
-                    l.append(Text.of(TextColors.WHITE, "Seller:"));
-                    l.append(Text.of(TextColors.LIGHT_PURPLE, " " + jedis.hget("vote4dis:uuidcache", listing.get("Seller"))));
-                    l.append(Text.of(" "));
-                    l.append(Text.builder()
-                            .color(TextColors.GREEN)
-                            .onClick(TextActions.runCommand("/market check " + openListing))
-                            .append(Text.of("[Info]"))
-                            .onHover(TextActions.showText(Text.of("View more info about this listing.")))
-                            .build());
-                    texts.add(l.build());
-                }
-            }
-            if (texts.size() == 0) texts.add(Text.of(TextColors.RED, "No listings found."));
-            return getPaginationService().builder().contents(texts).title(Texts.MARKET_SEARCH).build();
-        }
-    }
-
     public Scheduler getScheduler() {
         return game.getScheduler();
+    }
+
+    public ConfigurationLoader<CommentedConfigurationNode> getConfigManager() {
+        return configManager;
+    }
+
+    public DataStore getDataStore() {
+        return dataStore;
     }
 }

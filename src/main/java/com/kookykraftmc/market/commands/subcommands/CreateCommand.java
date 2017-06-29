@@ -36,11 +36,11 @@ public class CreateCommand implements CommandExecutor {
                 Optional<Integer> oprice = args.getOne(Text.of("price"));
                 oprice.ifPresent(integer -> {
                     int price = integer;
-                    int v = pl.addListing(player, itemStack, quan, price);
+                    int v = pl.getDataStore().addListing(player, itemStack, quan, price);
                     if (v == 0) player.sendMessage(Texts.COULD_NOT_MAKE_LISTNG);
                     else if (v == -1) player.sendMessage(Texts.USE_ADD_STOCK);
                     else {
-                        pl.getListing(String.valueOf(v)).sendTo(src);
+                        pl.getDataStore().getListing(String.valueOf(v)).sendTo(src);
                         player.setItemInHand(HandTypes.MAIN_HAND, null);
                     }
                 });

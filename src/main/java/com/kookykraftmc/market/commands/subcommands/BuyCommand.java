@@ -31,7 +31,7 @@ public class BuyCommand implements CommandExecutor {
             Player player = (Player) src;
             Optional<UniqueAccount> acc = pl.getEconomyService().getOrCreateAccount(player.getUniqueId());
             if (acc.isPresent()) {
-                ItemStack a = pl.purchase(acc.get(), id.get());
+                ItemStack a = pl.getDataStore().purchase(acc.get(), id.get());
                 if (a == null) player.sendMessage(Texts.NO_BUY_ITEM);
                 else {
                     InventoryTransactionResult offer = player.getInventory().query(Hotbar.class, GridInventory.class).offer(a);

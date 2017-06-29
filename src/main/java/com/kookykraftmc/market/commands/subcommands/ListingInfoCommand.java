@@ -21,7 +21,7 @@ public class ListingInfoCommand implements CommandExecutor {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         Optional<String> oid = args.getOne(Text.of("id"));
         if (oid.isPresent()) {
-            PaginationList p = pl.getListing(oid.get());
+            PaginationList p = pl.getDataStore().getListing(oid.get());
             if (p != null) p.sendTo(src);
         } else src.sendMessage(Texts.INVALID_LISTING);
         return CommandResult.success();

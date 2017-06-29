@@ -14,7 +14,7 @@ public class ListingsCommand implements CommandExecutor {
     Market pl = Market.instance;
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        pl.getListings().sendTo(src);
+        pl.getDataStore().getListings().sendTo(src);
         return CommandResult.success();
     }
 }

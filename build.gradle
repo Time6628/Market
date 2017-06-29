@@ -15,9 +15,14 @@ repositories {
         name 'sonatype'
         url 'http://oss.sonatype.org/content/repositories/snapshots/'
     }
+    maven {
+        name 'jitpack.io'
+        url 'https://jitpack.io'
+    }
 }
 dependencies {
     compile 'org.spongepowered:spongeapi:6.+'
+    compile 'com.github.codeHusky:HuskyUI-Plugin:v0.1.0'
     shadow 'redis.clients:jedis:2.9.0'
     shadow 'org.apache.commons:commons-pool2:2.4.2'
 }
