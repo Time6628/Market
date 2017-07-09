@@ -1,5 +1,14 @@
 package com.kookykraftmc.market.datastores;
 
+import com.codehusky.huskyui.StateContainer;
+import com.codehusky.huskyui.states.Page;
+import com.codehusky.huskyui.states.State;
+import com.codehusky.huskyui.states.action.Action;
+import com.codehusky.huskyui.states.action.ActionType;
+import com.codehusky.huskyui.states.action.runnable.RunnableAction;
+import com.codehusky.huskyui.states.action.runnable.UIRunnable;
+import com.codehusky.huskyui.states.element.ActionableElement;
+import com.codehusky.huskyui.states.element.Element;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.Texts;
 import com.mongodb.MongoClient;
@@ -9,6 +18,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.item.ItemType;
@@ -21,6 +31,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 
+import javax.annotation.Nonnull;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Consumer;
@@ -143,6 +154,27 @@ public class MongoDBDataStore implements DataStore {
                 });
             });
             return market.getPaginationService().builder().contents(texts).title(Texts.MARKET_LISTINGS).build();
+        }
+    }
+
+    public StateContainer getListingsGUI() {
+        try (MongoClient client = getClient()) {
+            StateContainer sc = new StateContainer();
+            FindIterable<Document> docs = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).find(Filters.all("tags", MongoTags.marketListingTags));
+            Page.PageBuilder p = Page.builder();
+            docs.forEach((Consumer<? super Document>) document -> {
+                Optional<ItemStack> is = market.deserializeItemStack(document.getString("Item"));
+                is.ifPresent(itemStack -> {
+                    ItemStack i = is.get().copy();
+                    List<Text> lore = new ArrayList<>();
+                    lore.add(Text.builder().append(Text.of("Price: " + getNameFromUUIDCache(document.getString("Price")) + " for x" + document.getString("Quantity"))).build());
+                    lore.add(Text.builder().append(Text.of("Seller: " + getNameFromUUIDCache(document.getString("Seller")))).build());
+
+                    i.offer(Keys.ITEM_LORE, lore);
+                    p.addElement(new ActionableElement(new RunnableAction(sc, ActionType.CLOSE, "good"), i));
+                });
+            });
+            return sc;
         }
     }
 
