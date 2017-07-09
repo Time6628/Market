@@ -41,6 +41,7 @@ import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.pagination.PaginationService;
+import org.spongepowered.api.service.sql.SqlService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
@@ -49,8 +50,10 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Transaction;
 
+import javax.sql.DataSource;
 import java.io.*;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -79,6 +82,7 @@ public class Market {
     public NamedCause marketCause;
 
     private DataStore dataStore;
+    private SqlService sql;
 
     @Listener
     public void onPreInit(GamePreInitializationEvent event) {
@@ -96,6 +100,10 @@ public class Market {
                 this.cfg.getNode("Redis", "Port").setValue(6379);
                 this.cfg.getNode("Redis", "Use-password").setValue(false);
                 this.cfg.getNode("Redis", "Password").setValue("password");
+
+                this.cfg.getNode("MongoDB", "Enabled").setValue(true);
+                this.cfg.getNode("MongoDB", "Host").setValue("localhost");
+                this.cfg.getNode("MongoDB", "Port").setValue(27017);
 
                 this.cfg.getNode("Market", "Sponge", "Server").setValue("TEST");
                 logger.info("Config created...");
@@ -354,5 +362,16 @@ public class Market {
 
     public DataStore getDataStore() {
         return dataStore;
+    }
+
+    public DataSource getDataSource(String jdbcUrl) throws SQLException {
+        if (sql == null) {
+            sql = game.getServiceManager().provide(SqlService.class).get();
+        }
+        return sql.getDataSource(jdbcUrl);
+    }
+
+    public Logger getLogger() {
+        return logger;
     }
 }
