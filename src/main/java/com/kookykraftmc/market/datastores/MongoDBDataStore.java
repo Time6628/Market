@@ -1,21 +1,28 @@
 package com.kookykraftmc.market.datastores;
 
 import com.kookykraftmc.market.Market;
+import com.kookykraftmc.market.Texts;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.pagination.PaginationList;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
+import org.spongepowered.api.text.format.TextColors;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class MongoDBDataStore implements DataStore {
@@ -24,8 +31,9 @@ public class MongoDBDataStore implements DataStore {
     private MongoClient mongoClient;
     private String databaseName;
 
-    public MongoDBDataStore(String host, int port, String database) {
-        mongoClient = new MongoClient(host, port);
+    public MongoDBDataStore(String host, int port, String database, String user, String password) {
+        MongoCredential cred = MongoCredential.createCredential(user, database, password.toCharArray());
+        mongoClient = new MongoClient(new ServerAddress(host, port), Collections.singletonList(cred));
         databaseName = database;
         setupDB();
     }
@@ -51,7 +59,7 @@ public class MongoDBDataStore implements DataStore {
             Document uuidDoc = new Document()
                     .append("uuid", uuid)
                     .append("name", name);
-            MongoCollection<Document> collection = client.getDatabase(databaseName).getCollection(MongoCollections.marketInfo);
+            MongoCollection<Document> collection = client.getDatabase(databaseName).getCollection(MongoCollections.uuidCache);
             Document found = collection.find(Filters.eq("uuid", uuid)).first();
             if (found == null) {
                 collection.insertOne(uuidDoc);
@@ -78,6 +86,7 @@ public class MongoDBDataStore implements DataStore {
             doc.append("Stock", itemStack.getQuantity());
             doc.append("Price", price);
             doc.append("Quantity", quantityPerSale);
+            doc.append("ID", id);
             MongoCollection<Document> collection = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings);
             collection.insertOne(doc);
             setLastID(id);
@@ -104,27 +113,164 @@ public class MongoDBDataStore implements DataStore {
 
     @Override
     public PaginationList getListings() {
-        return null;
+        try (MongoClient client = getClient()) {
+            FindIterable<Document> docs = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).find(Filters.all("tags", MongoTags.marketListingTags));
+            List<Text> texts = new ArrayList<>();
+            docs.forEach((Consumer<? super Document>) document -> {
+                Text.Builder l = Text.builder();
+                Optional<ItemStack> is = market.deserializeItemStack(document.getString("Item"));
+                is.ifPresent(itemStack -> {
+                    l.append(Texts.quickItemFormat(itemStack));
+                    l.append(Text.of(" "));
+                    l.append(Text.of(TextColors.WHITE, "@"));
+                    l.append(Text.of(" "));
+                    l.append(Text.of(TextColors.GREEN, "$" + document.getString("Price")));
+                    l.append(Text.of(" "));
+                    l.append(Text.of(TextColors.WHITE, "for"));
+                    l.append(Text.of(" "));
+                    l.append(Text.of(TextColors.GREEN, document.get("Quantity") + "x"));
+                    l.append(Text.of(" "));
+                    l.append(Text.of(TextColors.WHITE, "Seller:"));
+                    l.append(Text.of(TextColors.LIGHT_PURPLE, " " + getNameFromUUIDCache(getNameFromUUIDCache(document.getString("Seller")))));
+                    l.append(Text.of(" "));
+                    l.append(Text.builder()
+                            .color(TextColors.GREEN)
+                            .onClick(TextActions.runCommand("/market check " + document.getInteger("ID")))
+                            .append(Text.of("[Info]"))
+                            .onHover(TextActions.showText(Text.of("View more info about this listing.")))
+                            .build());
+                    texts.add(l.build());
+                });
+            });
+            return market.getPaginationService().builder().contents(texts).title(Texts.MARKET_LISTINGS).build();
+        }
     }
 
     @Override
     public List<ItemStack> removeListing(String id, String uuid, boolean staff) {
-        return null;
+        try (MongoClient client = getClient()) {
+            Document doc = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).find(Filters.eq("ID", id)).first();
+            if (doc == null) return null;
+            else {
+                //check to see if the uuid matches the seller, or the user is a staff member
+                if (!doc.getString("Seller").equals(uuid) && !staff) return null;
+                //get how much stock it has
+                int inStock = doc.getInteger("Stock");
+                //deserialize the item
+                ItemStack listingIS = market.deserializeItemStack(doc.getString("Item")).get();
+                //calculate the amount of stacks to make
+                int stacksInStock = inStock / listingIS.getMaxStackQuantity();
+                //new list for stacks
+                List<ItemStack> stacks = new ArrayList<>();
+                //until all stacks are pulled out, keep adding more stacks to stacks
+                for (int i = 0; i < stacksInStock; i++) {
+                    stacks.add(listingIS.copy());
+                }
+                if (inStock % listingIS.getMaxStackQuantity() != 0) {
+                    ItemStack extra = listingIS.copy();
+                    extra.setQuantity(inStock % listingIS.getMaxStackQuantity());
+                    stacks.add(extra);
+                }
+                //remove from the listings
+                client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).deleteOne(Filters.eq("ID", id));
+                return stacks;
+            }
+        }
     }
 
     @Override
     public PaginationList getListing(String id) {
-        return null;
+        try (MongoClient client = getClient()) {
+            Document listing = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).find(Filters.eq("ID", id)).first();
+            //if the item is not for sale, do not get the listing
+            if (listing == null) return null;
+            //create list of Texts for pages
+            List<Text> texts = new ArrayList<>();
+            //replace with item if key is "Item", replace uuid with name from Vote4Dis cache.
+            listing.forEach((key, value) -> {
+                switch (key) {
+                    case "Item":
+                        texts.add(Texts.quickItemFormat(market.deserializeItemStack((String) value).get()));
+                        break;
+                    case "Seller":
+                        texts.add(Text.of("Seller: " + getNameFromUUIDCache((String) value)));
+                        break;
+                    default:
+                        texts.add(Text.of(key + ": " + value));
+                        break;
+                }
+            });
+
+            texts.add(Text.builder()
+                    .append(Text.builder()
+                            .color(TextColors.GREEN)
+                            .append(Text.of("[Buy]"))
+                            .onClick(TextActions.suggestCommand("/market buy " + id))
+                            .build())
+                    .append(Text.of(" "))
+                    .append(Text.builder()
+                            .color(TextColors.GREEN)
+                            .append(Text.of("[QuickBuy]"))
+                            .onClick(TextActions.runCommand("/market buy " + id))
+                            .onHover(TextActions.showText(Text.of("Click here to run the command to buy the item.")))
+                            .build())
+                    .build());
+
+            return market.getPaginationService().builder().title(Texts.MARKET_LISTING(id)).contents(texts).build();
+        }
     }
 
     @Override
     public boolean addStock(ItemStack itemStack, String id, UUID uuid) {
-        return false;
+        try (MongoClient client = getClient()) {
+            Document listing = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).find(Filters.eq("ID", id)).first();
+            if (listing == null) return false;
+            else if (!listing.getString("Seller").equals(uuid.toString())) return false;
+            else {
+                ItemStack listingStack = market.deserializeItemStack(listing.getString("Item")).get();
+                //if the stack in the listing matches the stack it's trying to add, add it to the stack
+                if (market.matchItemStacks(listingStack, itemStack)) {
+                    int stock = listing.getInteger("Stock");
+                    int quan = itemStack.getQuantity() + stock;
+                    listing.put("Stock", stock);
+                    client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).replaceOne(Filters.eq("ID", id), listing);
+                    return true;
+                } else return false;
+            }
+        }
     }
 
     @Override
     public ItemStack purchase(UniqueAccount uniqueAccount, String id) {
-        return null;
+        try (MongoClient client = getClient()) {
+            Document listing = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).find(Filters.eq("ID", id)).first();
+            if (listing == null) return null;
+            else {
+                TransactionResult tr = uniqueAccount.transfer(market.getEconomyService().getOrCreateAccount(listing.getString(listing.getString("Seller"))).get(), market.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(listing.getLong("Price")), Cause.of(market.marketCause));
+                if (tr.getResult().equals(ResultType.SUCCESS)) {
+                    //get the itemstack
+                    ItemStack is = market.deserializeItemStack(listing.getString("Item")).get();
+                    //get the quantity per sale
+                    int quant = listing.getInteger("Quantity");
+                    //get the amount in stock
+                    int inStock = listing.getInteger("Stock");
+                    //get the new quantity
+                    int newQuant = inStock - quant;
+                    //if the new quantity is less than the quantity to be sold, expire the listing
+                    if (newQuant < quant) {
+                        client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).deleteOne(Filters.eq("ID", id));
+                    } else {
+                        listing.put("Stock", newQuant);
+                        client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).replaceOne(Filters.eq("ID", id), listing);
+                    }
+                    ItemStack nis = is.copy();
+                    nis.setQuantity(quant);
+                    return nis;
+                } else {
+                    return null;
+                }
+            }
+        }
     }
 
     @Override
@@ -164,17 +310,80 @@ public class MongoDBDataStore implements DataStore {
 
     @Override
     public PaginationList searchForItem(ItemType itemType) {
-        return null;
+        try (MongoClient client = getClient()) {
+            FindIterable<Document> docs = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).find(Filters.all("tags", "Item"));
+            List<Text> texts = new ArrayList<>();
+            docs.forEach((Consumer<? super Document>) document -> {
+                Text.Builder l = Text.builder();
+                Optional<ItemStack> is = market.deserializeItemStack(document.getString("Item"));
+                if (!is.isPresent()) return;
+                if (is.get().getItem().equals(itemType)) {
+                    l.append(Texts.quickItemFormat(is.get()));
+                    l.append(Text.of(" "));
+                    l.append(Text.of(TextColors.WHITE, "@"));
+                    l.append(Text.of(" "));
+                    l.append(Text.of(TextColors.GREEN, "$" + document.getString("Price")));
+                    l.append(Text.of(" "));
+                    l.append(Text.of(TextColors.WHITE, "for"));
+                    l.append(Text.of(" "));
+                    l.append(Text.of(TextColors.GREEN, document.getString("Quantity") + "x"));
+                    l.append(Text.of(" "));
+                    l.append(Text.of(TextColors.WHITE, "Seller:"));
+                    l.append(Text.of(TextColors.LIGHT_PURPLE, " " + getNameFromUUIDCache(document.getString("Seller"))));
+                    l.append(Text.of(" "));
+                    l.append(Text.builder()
+                            .color(TextColors.GREEN)
+                            .onClick(TextActions.runCommand("/market check " + document.getString("ID")))
+                            .append(Text.of("[Info]"))
+                            .onHover(TextActions.showText(Text.of("View more info about this listing.")))
+                            .build());
+                    texts.add(l.build());
+                }
+            });
+            if (texts.size() == 0) texts.add(Text.of(TextColors.RED, "No listings found."));
+            return market.getPaginationService().builder().contents(texts).title(Texts.MARKET_LISTINGS).build();
+        }
     }
 
     @Override
     public PaginationList searchForUUID(UUID uniqueId) {
-        return null;
+        try (MongoClient client = getClient()) {
+            FindIterable<Document> docs = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).find(Filters.eq("Seller", uniqueId));
+            List<Text> texts = new ArrayList<>();
+            docs.forEach((Consumer<? super Document>) document -> {
+                Text.Builder l = Text.builder();
+                Optional<ItemStack> is = market.deserializeItemStack(document.getString("Item"));
+                is.ifPresent(itemStack -> {
+                    l.append(Texts.quickItemFormat(itemStack));
+                    l.append(Text.of(" "));
+                    l.append(Text.of(TextColors.WHITE, "@"));
+                    l.append(Text.of(" "));
+                    l.append(Text.of(TextColors.GREEN, "$" + document.getString("Price")));
+                    l.append(Text.of(" "));
+                    l.append(Text.of(TextColors.WHITE, "for"));
+                    l.append(Text.of(" "));
+                    l.append(Text.of(TextColors.GREEN, document.get("Quantity") + "x"));
+                    l.append(Text.of(" "));
+                    l.append(Text.of(TextColors.WHITE, "Seller:"));
+                    l.append(Text.of(TextColors.LIGHT_PURPLE, " " + getNameFromUUIDCache(getNameFromUUIDCache(document.getString("Seller")))));
+                    l.append(Text.of(" "));
+                    l.append(Text.builder()
+                            .color(TextColors.GREEN)
+                            .onClick(TextActions.runCommand("/market check " + document.getInteger("ID")))
+                            .append(Text.of("[Info]"))
+                            .onHover(TextActions.showText(Text.of("View more info about this listing.")))
+                            .build());
+                    texts.add(l.build());
+                });
+            });
+            if (texts.size() == 0) texts.add(Text.of(TextColors.RED, "No listings found."));
+            return market.getPaginationService().builder().contents(texts).title(Texts.MARKET_LISTINGS).build();
+        }
     }
 
     @Override
     public void updateUUIDCache(Player player) {
-
+        updateUUIDCache(player.getUniqueId().toString(), player.getName());
     }
 
     @Override
@@ -195,6 +404,13 @@ public class MongoDBDataStore implements DataStore {
             Document found = client.getDatabase(databaseName).getCollection(MongoCollections.marketInfo).find(Filters.all("tags", MongoTags.marketInfoTags)).first();
             found.put("lastID", lastID);
             client.getDatabase(databaseName).getCollection(MongoCollections.marketInfo).replaceOne(Filters.all("tags", MongoTags.marketInfoTags), found);
+        }
+    }
+
+    private String getNameFromUUIDCache(String uuid) {
+        try (MongoClient client = getClient()) {
+            Document found = client.getDatabase(databaseName).getCollection(MongoCollections.uuidCache).find(Filters.eq("uuid", uuid)).first();
+            return found.getString("name");
         }
     }
 }

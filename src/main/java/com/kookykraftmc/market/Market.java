@@ -6,10 +6,7 @@ import com.kookykraftmc.market.commands.MarketCommand;
 import com.kookykraftmc.market.commands.subcommands.*;
 import com.kookykraftmc.market.commands.subcommands.blacklist.BlacklistAddCommand;
 import com.kookykraftmc.market.commands.subcommands.blacklist.BlacklistRemoveCommand;
-import com.kookykraftmc.market.datastores.DataStore;
-import com.kookykraftmc.market.datastores.RedisDataStore;
-import com.kookykraftmc.market.datastores.RedisKeys;
-import com.kookykraftmc.market.datastores.RedisPubSub;
+import com.kookykraftmc.market.datastores.*;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -101,9 +98,12 @@ public class Market {
                 this.cfg.getNode("Redis", "Use-password").setValue(false);
                 this.cfg.getNode("Redis", "Password").setValue("password");
 
-                this.cfg.getNode("MongoDB", "Enabled").setValue(true);
+                this.cfg.getNode("MongoDB", "Enabled").setValue(false);
                 this.cfg.getNode("MongoDB", "Host").setValue("localhost");
                 this.cfg.getNode("MongoDB", "Port").setValue(27017);
+                this.cfg.getNode("MongoDB", "User").setValue("admin");
+                this.cfg.getNode("MongoDB", "Password").setValue("password");
+                this.cfg.getNode("MongoDB", "Database").setValue("database");
 
                 this.cfg.getNode("Market", "Sponge", "Server").setValue("TEST");
                 logger.info("Config created...");
@@ -123,7 +123,7 @@ public class Market {
         marketCause = NamedCause.of("Market", this);
 
 
-        if (cfg.getNode("Redis", "Enabled").getBoolean()) {
+        if (cfg.getNode("Redis", "Enabled").getBoolean() && !cfg.getNode("MongoDB", "Enabled").getBoolean()) {
             int redisPort = cfg.getNode("Redis", "Port").getInt();
             String redisHost = cfg.getNode("Redis", "Host").getString();
             String redisPass = cfg.getNode("Redis", "Password").getString();
@@ -134,6 +134,13 @@ public class Market {
             } else {
                 dataStore = new RedisDataStore(redisHost, redisPort);
             }
+        } else if (cfg.getNode("MongoDB", "Enabled").getBoolean() && !cfg.getNode("Redis", "Enabled").getBoolean()) {
+            String host = cfg.getNode("MongoDB", "Host").getString();
+            int port = cfg.getNode("MongoDB", "Port").getInt();
+            String database = cfg.getNode("MongoDB", "Database").getString();
+            String user = cfg.getNode("MongoDB", "User").getString();
+            String pass = cfg.getNode("MongoDB", "Password").getString();
+            this.dataStore = new MongoDBDataStore(host, port, database, user, pass);
         }
 
         CommandSpec createMarketCmd = CommandSpec.builder()

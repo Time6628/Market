@@ -5,4 +5,6 @@ package com.kookykraftmc.market.datastores;
  */
 public class MongoTags {
     public static String[] marketInfoTags = new String[]{"lastID"};
+    public static String[] marketListingTags = new String[]{"Item", "Seller", "Stock", "Price", "Quantity", "ID"};
+
 }
