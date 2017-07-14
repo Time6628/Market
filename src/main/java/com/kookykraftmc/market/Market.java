@@ -154,6 +154,7 @@ public class Market {
                 .executor(new ListingsCommand())
                 .permission("market.command.listings")
                 .description(Text.of("List all market listings."))
+                .arguments(GenericArguments.flags().flag("g").buildWith(GenericArguments.none()))
                 .build();
 
         CommandSpec listingInfoCmd = CommandSpec.builder()

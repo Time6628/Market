@@ -2,8 +2,12 @@ package com.kookykraftmc.market;
 
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.TextTemplate;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.text.format.TextStyles;
+
+import static org.spongepowered.api.text.TextTemplate.arg;
 
 /**
  * Created by TimeTheCat on 4/3/2017.
@@ -45,4 +49,10 @@ public class Texts {
                 .append(Text.of(TextColors.GREEN, " to the market blacklist."))
                 .build();
     }
+
+    public static TextTemplate guiListing = TextTemplate.of(
+            TextColors.GREEN, "$", arg("Price").color(TextColors.GREEN),
+            TextColors.WHITE, " for ",
+            TextColors.GREEN, arg("Quantity").color(TextColors.GREEN), "x"
+    );
 }

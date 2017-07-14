@@ -1,12 +1,26 @@
 package com.kookykraftmc.market.datastores;
 
+import com.codehusky.huskyui.HuskyUI;
+import com.codehusky.huskyui.StateContainer;
+import com.codehusky.huskyui.states.Page;
+import com.codehusky.huskyui.states.action.ActionType;
+import com.codehusky.huskyui.states.action.runnable.RunnableAction;
+import com.codehusky.huskyui.states.element.ActionableElement;
 import com.google.common.collect.Lists;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.Texts;
+import com.mongodb.MongoClient;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.Filters;
+import org.bson.Document;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockType;
+import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.type.DyeColors;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
@@ -22,6 +36,7 @@ import redis.clients.jedis.Transaction;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.spongepowered.api.Sponge.getScheduler;
@@ -192,6 +207,41 @@ public class RedisDataStore implements DataStore {
                 texts.add(l.build());
             }
             return plugin.getPaginationService().builder().contents(texts).title(Texts.MARKET_LISTINGS).build();
+        }
+    }
+
+    @Override
+    public StateContainer getListingsGUI() {
+        try (Jedis jedis = getJedis().getResource()) {
+            //create new state container
+            StateContainer sc = new StateContainer();
+            //get all the listings for sale
+            Set<String> openListings = jedis.hgetAll(RedisKeys.FOR_SALE).keySet();
+            //create a new page builder
+            Page.PageBuilder p = Page.builder().setAutoPaging(true).setTitle(Texts.MARKET_BASE).setEmptyStack(ItemStack.builder().itemType(ItemTypes.STAINED_GLASS_PANE).add(Keys.DYE_COLOR, DyeColors.GREEN).add(Keys.DISPLAY_NAME, Text.of("")).build());
+            //add all the listings to the pages
+            openListings.forEach(ol -> {
+                //get the listing info
+                Map<String, String> listing = jedis.hgetAll(RedisKeys.MARKET_ITEM_KEY(ol));
+                //check if the item can be deserialized
+                Optional<ItemStack> is = plugin.deserializeItemStack(listing.get("Item"));
+                is.ifPresent(itemStack -> {
+                    //get the item stack
+                    ItemStack i = is.get().copy();
+                    i.setQuantity(Integer.valueOf(listing.get("Quantity")));
+                    List<Text> lore = new ArrayList<>();
+                    lore.add(Texts.guiListing.apply(listing).build());
+                    lore.add(Text.builder().color(TextColors.WHITE).append(Text.of("Seller: " + jedis.hget(RedisKeys.UUID_CACHE, listing.get("Seller")))).build());
+
+                    i.offer(Keys.ITEM_LORE, lore);
+                    p.addElement(new ActionableElement(new RunnableAction(sc, ActionType.CLOSE, "good", runnableAction -> {
+                        Sponge.getCommandManager().process(runnableAction.getObserver(), "market check " + ol);
+                        runnableAction.getObserver().closeInventory(HuskyUI.getInstance().getGenericCause());
+                    }), i));
+                });
+            });
+            sc.setInitialState(p.build("0"));
+            return sc;
         }
     }
 

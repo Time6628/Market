@@ -1,5 +1,6 @@
 package com.kookykraftmc.market.datastores;
 
+import com.codehusky.huskyui.HuskyUI;
 import com.codehusky.huskyui.StateContainer;
 import com.codehusky.huskyui.states.Page;
 import com.codehusky.huskyui.states.State;
@@ -18,10 +19,13 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.type.DyeColors;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
@@ -157,23 +161,29 @@ public class MongoDBDataStore implements DataStore {
         }
     }
 
+    @Override
     public StateContainer getListingsGUI() {
         try (MongoClient client = getClient()) {
             StateContainer sc = new StateContainer();
             FindIterable<Document> docs = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).find(Filters.all("tags", MongoTags.marketListingTags));
-            Page.PageBuilder p = Page.builder();
+            Page.PageBuilder p = Page.builder().setAutoPaging(true).setTitle(Texts.MARKET_BASE).setEmptyStack(ItemStack.builder().itemType(ItemTypes.STAINED_GLASS_PANE).add(Keys.DYE_COLOR, DyeColors.GREEN).add(Keys.DISPLAY_NAME, Text.of("")).build());
             docs.forEach((Consumer<? super Document>) document -> {
                 Optional<ItemStack> is = market.deserializeItemStack(document.getString("Item"));
                 is.ifPresent(itemStack -> {
                     ItemStack i = is.get().copy();
+                    i.setQuantity(document.getInteger("Quantity"));
                     List<Text> lore = new ArrayList<>();
-                    lore.add(Text.builder().append(Text.of("Price: " + getNameFromUUIDCache(document.getString("Price")) + " for x" + document.getString("Quantity"))).build());
-                    lore.add(Text.builder().append(Text.of("Seller: " + getNameFromUUIDCache(document.getString("Seller")))).build());
+                    lore.add(Texts.guiListing.apply(document).build());
+                    lore.add(Text.builder().color(TextColors.WHITE).append(Text.of("Seller: " + getNameFromUUIDCache(document.getString("Seller")))).build());
 
                     i.offer(Keys.ITEM_LORE, lore);
-                    p.addElement(new ActionableElement(new RunnableAction(sc, ActionType.CLOSE, "good"), i));
+                    p.addElement(new ActionableElement(new RunnableAction(sc, ActionType.CLOSE, "good", runnableAction -> {
+                        Sponge.getCommandManager().process(runnableAction.getObserver(), "market check " + document.getString("ID"));
+                        runnableAction.getObserver().closeInventory(HuskyUI.getInstance().getGenericCause());
+                    }), i));
                 });
             });
+            sc.setInitialState(p.build("0"));
             return sc;
         }
     }
