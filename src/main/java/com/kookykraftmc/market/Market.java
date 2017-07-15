@@ -52,6 +52,7 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 @Plugin(id = "market", name = "Market", description = "Market", url = "https://kookykraftmc.net", authors = {"TimeTheCat"})
@@ -340,14 +341,15 @@ public class Market {
     }
 
     public Optional<ItemStack> deserializeItemStack(String item) {
-        ConfigurationNode node = null;
+        ConfigurationNode node;
         try {
             node = HoconConfigurationLoader.builder().setSource(() -> new BufferedReader(new StringReader(item))).build().load();
-        } catch (IOException e) {
-            e.printStackTrace();
+            DataView dataView = DataTranslators.CONFIGURATION_NODE.translate(node);
+            return getGame().getDataManager().deserialize(ItemStack.class, dataView);
+        } catch (Exception e) {
+            logger.warn("Could not deserialize an item.");
+            return Optional.empty();
         }
-        DataView dataView = DataTranslators.CONFIGURATION_NODE.translate(node);
-        return getGame().getDataManager().deserialize(ItemStack.class, dataView);
     }
 
     public boolean matchItemStacks(ItemStack is0, ItemStack is1) {
