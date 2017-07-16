@@ -15,8 +15,13 @@ public class ListingsCommand implements CommandExecutor {
     Market pl = Market.instance;
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        if (args.hasAny("g")) pl.getDataStore().getListingsGUI().copy().launchFor((Player) src);
-        else pl.getDataStore().getListings().sendTo(src);
+        if (pl.isChestGUIDefault()) {
+            if (args.hasAny("g")) pl.getDataStore().getListings().sendTo(src);
+            else pl.getDataStore().getListingsGUI().copy().launchFor((Player) src);
+        } else {
+            if (args.hasAny("g")) pl.getDataStore().getListingsGUI().copy().launchFor((Player) src);
+            else pl.getDataStore().getListings().sendTo(src);
+        }
 
         return CommandResult.success();
     }

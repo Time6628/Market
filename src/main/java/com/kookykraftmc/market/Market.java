@@ -91,7 +91,7 @@ public class Market {
 
                 this.cfg = getConfigManager().load();
 
-                this.cfg.getNode("Market", "Sponge", "Version").setValue(0.1);
+                this.cfg.getNode("Market", "Sponge", "Version").setValue(0.2);
 
                 this.cfg.getNode("Redis", "Enabled").setValue(true);
                 this.cfg.getNode("Redis", "Host").setValue("localhost");
@@ -106,12 +106,25 @@ public class Market {
                 this.cfg.getNode("MongoDB", "Password").setValue("password");
                 this.cfg.getNode("MongoDB", "Database").setValue("database");
 
+                this.cfg.getNode("Market", "GUI", "Chest-Is-Default").setValue(false);
+
                 this.cfg.getNode("Market", "Sponge", "Server").setValue("TEST");
                 logger.info("Config created...");
                 this.getConfigManager().save(cfg);
             }
 
             this.cfg = this.configManager.load();
+
+            if (cfg.getNode("Market", "Sponge", "Version").getDouble() == 0.1) {
+                this.cfg.getNode("MongoDB", "Enabled").setValue(false);
+                this.cfg.getNode("MongoDB", "Host").setValue("localhost");
+                this.cfg.getNode("MongoDB", "Port").setValue(27017);
+                this.cfg.getNode("MongoDB", "User").setValue("admin");
+                this.cfg.getNode("MongoDB", "Password").setValue("password");
+                this.cfg.getNode("MongoDB", "Database").setValue("database");
+                this.cfg.getNode("Market", "Sponge", "Version").setValue(0.2);
+                this.configManager.save(cfg);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -379,6 +392,10 @@ public class Market {
             sql = game.getServiceManager().provide(SqlService.class).get();
         }
         return sql.getDataSource(jdbcUrl);
+    }
+
+    public boolean isChestGUIDefault() {
+        return cfg.getNode("Market", "GUI", "Chest-Is-Default").getBoolean();
     }
 
     public Logger getLogger() {
