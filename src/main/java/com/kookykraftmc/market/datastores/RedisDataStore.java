@@ -3,7 +3,9 @@ package com.kookykraftmc.market.datastores;
 import com.codehusky.huskyui.HuskyUI;
 import com.codehusky.huskyui.StateContainer;
 import com.codehusky.huskyui.states.Page;
+import com.codehusky.huskyui.states.State;
 import com.codehusky.huskyui.states.action.ActionType;
+import com.codehusky.huskyui.states.action.CommandAction;
 import com.codehusky.huskyui.states.action.runnable.RunnableAction;
 import com.codehusky.huskyui.states.element.ActionableElement;
 import com.google.common.collect.Lists;
@@ -234,13 +236,11 @@ public class RedisDataStore implements DataStore {
                     lore.add(Text.builder().color(TextColors.WHITE).append(Text.of("Seller: " + jedis.hget(RedisKeys.UUID_CACHE, listing.get("Seller")))).build());
 
                     i.offer(Keys.ITEM_LORE, lore);
-                    p.addElement(new ActionableElement(new RunnableAction(sc, ActionType.CLOSE, "good", runnableAction -> {
-                        Sponge.getCommandManager().process(runnableAction.getObserver(), "market check " + ol);
-                        runnableAction.getObserver().closeInventory(HuskyUI.getInstance().getGenericCause());
-                    }), i));
+                    p.addElement(new ActionableElement(new CommandAction(sc, ActionType.CLOSE, "1", "market check " + ol), i));
                 });
             });
             sc.setInitialState(p.build("0"));
+            sc.addState(new State("1"));
             return sc;
         }
     }

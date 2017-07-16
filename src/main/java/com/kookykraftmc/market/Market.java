@@ -99,6 +99,8 @@ public class Market {
                 this.cfg.getNode("Redis", "Use-password").setValue(false);
                 this.cfg.getNode("Redis", "Password").setValue("password");
 
+                this.cfg.getNode("Redis", "Keys", "UUID-Cache").setValue("market:uuidcache");
+
                 this.cfg.getNode("MongoDB", "Enabled").setValue(false);
                 this.cfg.getNode("MongoDB", "Host").setValue("localhost");
                 this.cfg.getNode("MongoDB", "Port").setValue(27017);
@@ -121,6 +123,7 @@ public class Market {
                 this.cfg.getNode("MongoDB", "Port").setValue(27017);
                 this.cfg.getNode("MongoDB", "User").setValue("admin");
                 this.cfg.getNode("MongoDB", "Password").setValue("password");
+                this.cfg.getNode("Redis", "Keys", "UUID-Cache").setValue("market:uuidcache");
                 this.cfg.getNode("MongoDB", "Database").setValue("database");
                 this.cfg.getNode("Market", "Sponge", "Version").setValue(0.2);
                 this.configManager.save(cfg);
@@ -136,8 +139,9 @@ public class Market {
         instance = this;
         marketCause = NamedCause.of("Market", this);
 
-
         if (cfg.getNode("Redis", "Enabled").getBoolean() && !cfg.getNode("MongoDB", "Enabled").getBoolean()) {
+            RedisKeys.UUID_CACHE = cfg.getNode("Redis", "Keys", "UUID-Cache").getString();
+
             int redisPort = cfg.getNode("Redis", "Port").getInt();
             String redisHost = cfg.getNode("Redis", "Host").getString();
             String redisPass = cfg.getNode("Redis", "Password").getString();

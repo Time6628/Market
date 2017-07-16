@@ -6,6 +6,7 @@ import com.codehusky.huskyui.states.Page;
 import com.codehusky.huskyui.states.State;
 import com.codehusky.huskyui.states.action.Action;
 import com.codehusky.huskyui.states.action.ActionType;
+import com.codehusky.huskyui.states.action.CommandAction;
 import com.codehusky.huskyui.states.action.runnable.RunnableAction;
 import com.codehusky.huskyui.states.action.runnable.UIRunnable;
 import com.codehusky.huskyui.states.element.ActionableElement;
@@ -177,13 +178,11 @@ public class MongoDBDataStore implements DataStore {
                     lore.add(Text.builder().color(TextColors.WHITE).append(Text.of("Seller: " + getNameFromUUIDCache(document.getString("Seller")))).build());
 
                     i.offer(Keys.ITEM_LORE, lore);
-                    p.addElement(new ActionableElement(new RunnableAction(sc, ActionType.CLOSE, "good", runnableAction -> {
-                        Sponge.getCommandManager().process(runnableAction.getObserver(), "market check " + document.getString("ID"));
-                        runnableAction.getObserver().closeInventory(HuskyUI.getInstance().getGenericCause());
-                    }), i));
+                    p.addElement(new ActionableElement(new CommandAction(sc, ActionType.CLOSE, "1", "market check " + document.getString("ID")), i));
                 });
             });
             sc.setInitialState(p.build("0"));
+            sc.addState(new State("1"));
             return sc;
         }
     }
