@@ -1,7 +1,5 @@
 package com.kookykraftmc.market.datastores;
 
-import com.kookykraftmc.market.Market;
-import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 
 /**

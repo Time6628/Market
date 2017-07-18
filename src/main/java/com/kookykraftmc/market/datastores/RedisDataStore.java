@@ -1,21 +1,13 @@
 package com.kookykraftmc.market.datastores;
 
-import com.codehusky.huskyui.HuskyUI;
 import com.codehusky.huskyui.StateContainer;
 import com.codehusky.huskyui.states.Page;
 import com.codehusky.huskyui.states.State;
 import com.codehusky.huskyui.states.action.ActionType;
-import com.codehusky.huskyui.states.action.CommandAction;
-import com.codehusky.huskyui.states.action.runnable.RunnableAction;
 import com.codehusky.huskyui.states.element.ActionableElement;
 import com.google.common.collect.Lists;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.Texts;
-import com.mongodb.MongoClient;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.model.Filters;
-import org.bson.Document;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.type.DyeColors;
@@ -38,7 +30,6 @@ import redis.clients.jedis.Transaction;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.spongepowered.api.Sponge.getScheduler;
@@ -236,7 +227,11 @@ public class RedisDataStore implements DataStore {
                     lore.add(Text.builder().color(TextColors.WHITE).append(Text.of("Seller: " + jedis.hget(RedisKeys.UUID_CACHE, listing.get("Seller")))).build());
 
                     i.offer(Keys.ITEM_LORE, lore);
-                    p.addElement(new ActionableElement(new CommandAction(sc, ActionType.CLOSE, "1", "market check " + ol), i));
+
+                    //CommandAction ca = new CommandAction(sc, ActionType.CLOSE, "1", ("market check " + ol), CommandAction.CommandReceiver.PLAYER);
+
+                    MarketAction ma = new MarketAction(sc, ActionType.CLOSE, "1", ol);
+                    p.addElement(new ActionableElement(ma, i));
                 });
             });
             sc.setInitialState(p.build("0"));

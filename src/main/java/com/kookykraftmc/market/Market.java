@@ -1,6 +1,5 @@
 package com.kookykraftmc.market;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.kookykraftmc.market.commands.MarketCommand;
 import com.kookykraftmc.market.commands.subcommands.*;
@@ -13,7 +12,6 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
-import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.DefaultConfig;
@@ -21,7 +19,6 @@ import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.data.persistence.DataTranslators;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
@@ -33,27 +30,12 @@ import org.spongepowered.api.item.inventory.ItemStackComparators;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.scheduler.Scheduler;
 import org.spongepowered.api.service.economy.EconomyService;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.service.economy.transaction.ResultType;
-import org.spongepowered.api.service.economy.transaction.TransactionResult;
-import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.pagination.PaginationService;
-import org.spongepowered.api.service.sql.SqlService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
-import org.spongepowered.api.text.format.TextColors;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.Transaction;
 
-import javax.sql.DataSource;
 import java.io.*;
-import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 @Plugin(id = "market", name = "Market", description = "Market", url = "https://kookykraftmc.net", authors = {"TimeTheCat"}, version = "0.2.1")
 public class Market {
@@ -80,7 +62,6 @@ public class Market {
     public NamedCause marketCause;
 
     private DataStore dataStore;
-    private SqlService sql;
 
     @Listener
     public void onPreInit(GamePreInitializationEvent event) {
@@ -301,7 +282,7 @@ public class Market {
         return serverName;
     }
 
-    private Game getGame() {
+    public Game getGame() {
         return game;
     }
 
@@ -370,9 +351,7 @@ public class Market {
     }
 
     public boolean matchItemStacks(ItemStack is0, ItemStack is1) {
-        boolean type = ItemStackComparators.TYPE.compare(is0, is1) == 0;
-        boolean data = ItemStackComparators.ITEM_DATA.compare(is0, is1) == 0;
-        return type && data;
+        return new DataComparator().compare(is0, is1) == 0;
     }
 
     public EconomyService getEconomyService() {
@@ -389,13 +368,6 @@ public class Market {
 
     public DataStore getDataStore() {
         return dataStore;
-    }
-
-    public DataSource getDataSource(String jdbcUrl) throws SQLException {
-        if (sql == null) {
-            sql = game.getServiceManager().provide(SqlService.class).get();
-        }
-        return sql.getDataSource(jdbcUrl);
     }
 
     public boolean isChestGUIDefault() {
