@@ -39,7 +39,7 @@ shadowJar {
     relocate 'org.apache', 'com.kookykraftmc.relocate.relocate.org.apache'
     relocate 'redis.clients', 'com.kookykraftmc.relocate.redis.clients'
 
-    archiveName = 'Market-0.1.jar'
+    archiveName = 'Market-0.1.1.jar'
 }
 
 build.dependsOn(shadowJar)

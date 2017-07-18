@@ -547,9 +547,7 @@ public class Market {
     }
 
     private boolean matchItemStacks(ItemStack is0, ItemStack is1) {
-        boolean type = ItemStackComparators.TYPE.compare(is0, is1) == 0;
-        boolean data = ItemStackComparators.ITEM_DATA.compare(is0, is1) == 0;
-        return type && data;
+        return new DataComparator().compare(is0, is1) == 0;
     }
 
     public ItemStack purchase(UniqueAccount uniqueAccount, String id) {
