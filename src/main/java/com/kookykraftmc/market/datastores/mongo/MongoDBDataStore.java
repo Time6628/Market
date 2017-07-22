@@ -9,6 +9,7 @@ import com.codehusky.huskyui.states.element.ActionableElement;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.Texts;
 import com.kookykraftmc.market.datastores.DataStore;
+import com.kookykraftmc.market.datastores.Listing;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
@@ -23,6 +24,7 @@ import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.property.InventoryDimension;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
@@ -127,30 +129,9 @@ public class MongoDBDataStore implements DataStore {
             FindIterable<Document> docs = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).find(Filters.all("tags", MongoTags.marketListingTags));
             List<Text> texts = new ArrayList<>();
             docs.forEach((Consumer<? super Document>) document -> {
-                Text.Builder l = Text.builder();
-                Optional<ItemStack> is = market.deserializeItemStack(document.getString("Item"));
-                is.ifPresent(itemStack -> {
-                    l.append(Texts.quickItemFormat(itemStack));
-                    l.append(Text.of(" "));
-                    l.append(Text.of(TextColors.WHITE, "@"));
-                    l.append(Text.of(" "));
-                    l.append(Text.of(TextColors.GREEN, "$" + document.getString("Price")));
-                    l.append(Text.of(" "));
-                    l.append(Text.of(TextColors.WHITE, "for"));
-                    l.append(Text.of(" "));
-                    l.append(Text.of(TextColors.GREEN, document.get("Quantity") + "x"));
-                    l.append(Text.of(" "));
-                    l.append(Text.of(TextColors.WHITE, "Seller:"));
-                    l.append(Text.of(TextColors.LIGHT_PURPLE, " " + getNameFromUUIDCache(getNameFromUUIDCache(document.getString("Seller")))));
-                    l.append(Text.of(" "));
-                    l.append(Text.builder()
-                            .color(TextColors.GREEN)
-                            .onClick(TextActions.runCommand("/market check " + document.getInteger("ID")))
-                            .append(Text.of("[Info]"))
-                            .onHover(TextActions.showText(Text.of("View more info about this listing.")))
-                            .build());
-                    texts.add(l.build());
-                });
+                Listing listing = new Listing(document, getNameFromUUIDCache(document.getString("Seller")));
+                if (listing.getItemStack() == null) return;
+                texts.add(listing.getListingsText());
             });
             return market.getPaginationService().builder().contents(texts).title(Texts.MARKET_LISTINGS).build();
         }
@@ -161,7 +142,7 @@ public class MongoDBDataStore implements DataStore {
         try (MongoClient client = getClient()) {
             StateContainer sc = new StateContainer();
             FindIterable<Document> docs = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).find(Filters.all("tags", MongoTags.marketListingTags));
-            Page.PageBuilder p = Page.builder().setAutoPaging(true).setTitle(Texts.MARKET_BASE).setEmptyStack(ItemStack.builder().itemType(ItemTypes.STAINED_GLASS_PANE).add(Keys.DYE_COLOR, DyeColors.GREEN).add(Keys.DISPLAY_NAME, Text.of("")).build());
+            Page.PageBuilder p = Page.builder().setAutoPaging(true).setTitle(Texts.MARKET_BASE).setInventoryDimension(InventoryDimension.of(6,6)).setEmptyStack(ItemStack.builder().itemType(ItemTypes.STAINED_GLASS_PANE).add(Keys.DYE_COLOR, DyeColors.GREEN).add(Keys.DISPLAY_NAME, Text.of("")).build());
             docs.forEach((Consumer<? super Document>) document -> {
                 Optional<ItemStack> is = market.deserializeItemStack(document.getString("Item"));
                 is.ifPresent(itemStack -> {
@@ -173,7 +154,7 @@ public class MongoDBDataStore implements DataStore {
 
                     i.offer(Keys.ITEM_LORE, lore);
 
-                    CommandAction ca = new CommandAction(sc, ActionType.CLOSE, "1", "market check " + document.getString("ID"));
+                    CommandAction ca = new CommandAction(sc, ActionType.CLOSE, "0", "market check " + document.getString("ID"));
                     p.addElement(new ActionableElement(ca, i));
                 });
             });

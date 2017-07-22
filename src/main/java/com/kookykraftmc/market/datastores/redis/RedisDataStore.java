@@ -4,12 +4,13 @@ import com.codehusky.huskyui.StateContainer;
 import com.codehusky.huskyui.states.Page;
 import com.codehusky.huskyui.states.State;
 import com.codehusky.huskyui.states.action.ActionType;
+import com.codehusky.huskyui.states.action.CommandAction;
 import com.codehusky.huskyui.states.element.ActionableElement;
 import com.google.common.collect.Lists;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.Texts;
 import com.kookykraftmc.market.datastores.DataStore;
-import com.kookykraftmc.market.datastores.MarketAction;
+import com.kookykraftmc.market.datastores.Listing;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.type.DyeColors;
@@ -18,6 +19,7 @@ import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.property.InventoryDimension;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
@@ -176,30 +178,9 @@ public class RedisDataStore implements DataStore {
             List<Text> texts = new ArrayList<>();
             for (String openListing : openListings) {
                 Map<String, String> listing = jedis.hgetAll(RedisKeys.MARKET_ITEM_KEY(openListing));
-                Text.Builder l = Text.builder();
-                Optional<ItemStack> is = plugin.deserializeItemStack(listing.get("Item"));
-                if (!is.isPresent()) continue;
-                l.append(Texts.quickItemFormat(is.get()));
-                l.append(Text.of(" "));
-                l.append(Text.of(TextColors.WHITE, "@"));
-                l.append(Text.of(" "));
-                l.append(Text.of(TextColors.GREEN, "$" + listing.get("Price")));
-                l.append(Text.of(" "));
-                l.append(Text.of(TextColors.WHITE, "for"));
-                l.append(Text.of(" "));
-                l.append(Text.of(TextColors.GREEN, listing.get("Quantity") + "x"));
-                l.append(Text.of(" "));
-                l.append(Text.of(TextColors.WHITE, "Seller:"));
-                l.append(Text.of(TextColors.LIGHT_PURPLE, " " + jedis.hget(RedisKeys.UUID_CACHE, listing.get("Seller"))));
-                l.append(Text.of(" "));
-                l.append(Text.builder()
-                        .color(TextColors.GREEN)
-                        .onClick(TextActions.runCommand("/market check " + openListing))
-                        .append(Text.of("[Info]"))
-                        .onHover(TextActions.showText(Text.of("View more info about this listing.")))
-                        .build());
-
-                texts.add(l.build());
+                Listing l = new Listing(listing, openListing, jedis.hget(RedisKeys.UUID_CACHE, listing.get("Seller")));
+                if (l.getItemStack() == null) continue;
+                texts.add(l.getListingsText());
             }
             return plugin.getPaginationService().builder().contents(texts).title(Texts.MARKET_LISTINGS).build();
         }
@@ -213,7 +194,7 @@ public class RedisDataStore implements DataStore {
             //get all the listings for sale
             Set<String> openListings = jedis.hgetAll(RedisKeys.FOR_SALE).keySet();
             //create a new page builder
-            Page.PageBuilder p = Page.builder().setAutoPaging(true).setTitle(Texts.MARKET_BASE).setEmptyStack(ItemStack.builder().itemType(ItemTypes.STAINED_GLASS_PANE).add(Keys.DYE_COLOR, DyeColors.GREEN).add(Keys.DISPLAY_NAME, Text.of("")).build());
+            Page.PageBuilder p = Page.builder().setAutoPaging(true).setTitle(Texts.MARKET_BASE).setInventoryDimension(InventoryDimension.of(6,6)).setEmptyStack(ItemStack.builder().itemType(ItemTypes.STAINED_GLASS_PANE).add(Keys.DYE_COLOR, DyeColors.GREEN).add(Keys.DISPLAY_NAME, Text.of("")).build());
             //add all the listings to the pages
             openListings.forEach(ol -> {
                 //get the listing info
@@ -230,10 +211,9 @@ public class RedisDataStore implements DataStore {
 
                     i.offer(Keys.ITEM_LORE, lore);
 
-                    //CommandAction ca = new CommandAction(sc, ActionType.CLOSE, "1", ("market check " + ol), CommandAction.CommandReceiver.PLAYER);
+                    CommandAction ca = new CommandAction(sc, ActionType.CLOSE, "0", ("market check " + ol), CommandAction.CommandReceiver.PLAYER);
 
-                    MarketAction ma = new MarketAction(sc, ActionType.CLOSE, "1", ol);
-                    p.addElement(new ActionableElement(ma, i));
+                    p.addElement(new ActionableElement(ca, i));
                 });
             });
             sc.setInitialState(p.build("0"));
