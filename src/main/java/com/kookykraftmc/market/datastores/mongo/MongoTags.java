@@ -1,4 +1,4 @@
-package com.kookykraftmc.market.datastores;
+package com.kookykraftmc.market.datastores.mongo;
 
 /**
  * Created by TimeTheCat on 7/6/2017.

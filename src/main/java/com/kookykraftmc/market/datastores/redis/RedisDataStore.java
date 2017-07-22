@@ -1,4 +1,4 @@
-package com.kookykraftmc.market.datastores;
+package com.kookykraftmc.market.datastores.redis;
 
 import com.codehusky.huskyui.StateContainer;
 import com.codehusky.huskyui.states.Page;
@@ -8,6 +8,8 @@ import com.codehusky.huskyui.states.element.ActionableElement;
 import com.google.common.collect.Lists;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.Texts;
+import com.kookykraftmc.market.datastores.DataStore;
+import com.kookykraftmc.market.datastores.MarketAction;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.type.DyeColors;

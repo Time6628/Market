@@ -1,4 +1,4 @@
-package com.kookykraftmc.market.datastores;
+package com.kookykraftmc.market.datastores.redis;
 
 import redis.clients.jedis.JedisPubSub;
 

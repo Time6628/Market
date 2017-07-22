@@ -6,6 +6,9 @@ import com.kookykraftmc.market.commands.subcommands.*;
 import com.kookykraftmc.market.commands.subcommands.blacklist.BlacklistAddCommand;
 import com.kookykraftmc.market.commands.subcommands.blacklist.BlacklistRemoveCommand;
 import com.kookykraftmc.market.datastores.*;
+import com.kookykraftmc.market.datastores.mongo.MongoDBDataStore;
+import com.kookykraftmc.market.datastores.redis.RedisDataStore;
+import com.kookykraftmc.market.datastores.redis.RedisKeys;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -26,7 +29,6 @@ import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.ItemStackComparators;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.scheduler.Scheduler;
 import org.spongepowered.api.service.economy.EconomyService;
@@ -37,7 +39,7 @@ import org.spongepowered.api.text.action.TextActions;
 import java.io.*;
 import java.util.*;
 
-@Plugin(id = "market", name = "Market", description = "Market", url = "https://kookykraftmc.net", authors = {"TimeTheCat"}, version = "0.2.1")
+@Plugin(id = "market", name = "Market", description = "Market", url = "https://kookykraftmc.net", authors = {"TimeTheCat"}, version = "0.2.2")
 public class Market {
 
     public static Market instance;

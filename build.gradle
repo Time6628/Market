@@ -50,7 +50,7 @@ shadowJar {
     relocate 'com.mongodb', 'com.kookykraftmc.relocate.com.mongodb'
     relocate 'org.bson', 'com.kookykraftmc.relocate.org.bson'
 
-    archiveName = 'Market-0.2.1.jar'
+    archiveName = 'Market-0.2.2.jar'
 }
 
 build.dependsOn(shadowJar)

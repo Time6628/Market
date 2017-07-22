@@ -1,4 +1,4 @@
-package com.kookykraftmc.market.datastores;
+package com.kookykraftmc.market.datastores.mongo;
 
 import com.codehusky.huskyui.StateContainer;
 import com.codehusky.huskyui.states.Page;
@@ -8,6 +8,7 @@ import com.codehusky.huskyui.states.action.CommandAction;
 import com.codehusky.huskyui.states.element.ActionableElement;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.Texts;
+import com.kookykraftmc.market.datastores.DataStore;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
