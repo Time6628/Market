@@ -8,6 +8,7 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 
 import java.io.File;
+import java.nio.file.Files;
 
 public class ConfigLoader {
 
@@ -16,13 +17,15 @@ public class ConfigLoader {
 
     public ConfigLoader(Market market) {
         this.market = market;
-        if (!this.market.configDir.exists()) this.market.configDir.mkdir();
     }
 
     public boolean loadConfig() {
         try {
-            File file = new File(market.configDir, "market.conf");
-            if (!file.exists()) file.createNewFile();
+            File file = null;
+            Files.createDirectories(this.market.configDir.getParent());
+            if (Files.notExists(market.configDir)) {
+                file = Files.createFile(market.configDir).toFile();
+            }
             ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setFile(file).build();
             CommentedConfigurationNode cfg = loader.load(ConfigurationOptions.defaults().setObjectMapperFactory(market.factory).setShouldCopyDefaults(true));
             marketConfig = cfg.getValue(TypeToken.of(MarketConfig.class), new MarketConfig());

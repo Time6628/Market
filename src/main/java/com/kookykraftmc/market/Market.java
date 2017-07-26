@@ -41,6 +41,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.util.*;
 
 @Plugin(id = "market", name = "Market", description = "Market", url = "https://kookykraftmc.net", authors = {"TimeTheCat"}, version = "0.2.2")
@@ -51,17 +52,18 @@ public class Market {
     @Inject
     private Logger logger;
 
-
-    @Inject private Game game;
+    @Inject
+    private Game game;
 
     @Inject
     @DefaultConfig(sharedRoot = false)
-    public File configDir;
+    public Path configDir;
 
     @Inject
     public GuiceObjectMapperFactory factory;
 
     private String serverName;
+
     public NamedCause marketCause;
 
     private DataStore dataStore;
@@ -70,8 +72,11 @@ public class Market {
 
     @Listener
     public void onPreInit(GamePreInitializationEvent event) {
+        logger.info("Loading config...");
         ConfigLoader configLoader = new ConfigLoader(this);
-        if (configLoader.loadConfig()) cfg = configLoader.getMarketConfig();
+        if (configLoader.loadConfig()) {
+            cfg = configLoader.getMarketConfig();
+        }
     }
 
     @Listener
