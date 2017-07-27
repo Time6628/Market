@@ -12,7 +12,7 @@ import org.spongepowered.api.entity.living.player.Player;
  * Created by TimeTheCat on 3/18/2017.
  */
 public class ListingsCommand implements CommandExecutor {
-    Market pl = Market.instance;
+    private Market pl = Market.instance;
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (pl.isChestGUIDefault()) {
