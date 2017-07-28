@@ -14,9 +14,9 @@ import java.util.concurrent.TimeUnit;
  * Created by TimeTheCat on 4/3/2017.
  */
 public class InvFullTask implements Runnable {
-    private Market pl = Market.instance;
-    private Player player;
-    private ItemStack item;
+    private final Market pl = Market.instance;
+    private final Player player;
+    private final ItemStack item;
 
     public InvFullTask(ItemStack item, Player player) {
         this.item = item;

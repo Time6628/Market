@@ -5,7 +5,7 @@ import redis.clients.jedis.JedisPubSub;
 /**
  * Created by TimeTheCat on 4/3/2017.
  */
-public class RedisPubSub extends JedisPubSub {
+class RedisPubSub extends JedisPubSub {
 
 
     private final RedisDataStore dataStore;
@@ -21,8 +21,8 @@ public class RedisPubSub extends JedisPubSub {
     }
 
     static class Channels {
-        static String marketBlacklistAdd = "market-blacklist-add"; //itemID
-        static String marketBlacklistRemove = "market-blacklist-remove"; //itemID
-        static String[] channels = { marketBlacklistAdd, marketBlacklistRemove };
+        static final String marketBlacklistAdd = "market-blacklist-add"; //itemID
+        static final String marketBlacklistRemove = "market-blacklist-remove"; //itemID
+        static final String[] channels = { marketBlacklistAdd, marketBlacklistRemove };
     }
 }

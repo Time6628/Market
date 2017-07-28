@@ -2,6 +2,7 @@ plugins {
     id 'org.spongepowered.plugin' version '0.8.1'
     id 'com.qixalite.spongestart' version '1.6.0'
     id 'com.github.johnrengelman.shadow' version '1.2.3'
+    id "ninja.miserable.blossom" version "1.0.1"
     id 'java'
 }
 
@@ -22,7 +23,7 @@ repositories {
 }
 dependencies {
     compile 'org.spongepowered:spongeapi:6.+'
-    compile 'com.github.codeHusky:HuskyUI-Plugin:v0.3.0'
+    compile 'com.github.codeHusky:HuskyUI-Plugin:v0.3.1'
     shadow 'redis.clients:jedis:2.9.0'
     shadow 'org.apache.commons:commons-pool2:2.4.2'
     shadow 'org.mongodb:mongodb-driver:3.4.2'
@@ -50,7 +51,7 @@ shadowJar {
     relocate 'com.mongodb', 'com.kookykraftmc.relocate.com.mongodb'
     relocate 'org.bson', 'com.kookykraftmc.relocate.org.bson'
 
-    archiveName = 'Market-0.2.2.jar'
+    archiveName = 'Market-0.2.3.jar'
 }
 
 build.dependsOn(shadowJar)

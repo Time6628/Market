@@ -12,7 +12,7 @@ import java.nio.file.Files;
 
 public class ConfigLoader {
 
-    private Market market;
+    private final Market market;
     private MarketConfig marketConfig;
 
     public ConfigLoader(Market market) {

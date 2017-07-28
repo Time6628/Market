@@ -7,7 +7,7 @@ import java.util.*;
 /**
  * Created by TimeTheCat on 7/18/2017.
  */
-public class DataComparator implements Comparator<ItemStack> {
+class DataComparator implements Comparator<ItemStack> {
 
     @Override
     public int compare(ItemStack o1, ItemStack o2) {

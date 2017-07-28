@@ -20,7 +20,9 @@ public interface DataStore {
 
     boolean checkForOtherListings(ItemStack itemStack, String s);
 
-    PaginationList getListings();
+    List<Listing> getListings();
+
+    PaginationList getListingsPagination();
 
     StateContainer getListingsGUI();
 

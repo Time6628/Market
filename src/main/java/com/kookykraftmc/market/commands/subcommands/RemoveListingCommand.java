@@ -21,7 +21,7 @@ import java.util.Optional;
  * Created by TimeTheCat on 3/19/2017.
  */
 public class RemoveListingCommand implements CommandExecutor {
-    Market pl = Market.instance;
+    private final Market pl = Market.instance;
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
 

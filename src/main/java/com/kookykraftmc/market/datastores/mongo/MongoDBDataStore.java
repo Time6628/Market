@@ -3,9 +3,6 @@ package com.kookykraftmc.market.datastores.mongo;
 import com.codehusky.huskyui.StateContainer;
 import com.codehusky.huskyui.states.Page;
 import com.codehusky.huskyui.states.State;
-import com.codehusky.huskyui.states.action.ActionType;
-import com.codehusky.huskyui.states.action.CommandAction;
-import com.codehusky.huskyui.states.element.ActionableElement;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.Texts;
 import com.kookykraftmc.market.datastores.DataStore;
@@ -39,9 +36,9 @@ import java.util.function.Consumer;
 
 public class MongoDBDataStore implements DataStore {
 
-    private Market market = Market.instance;
-    private MongoClient mongoClient;
-    private String databaseName;
+    private final Market market = Market.instance;
+    private final MongoClient mongoClient;
+    private final String databaseName;
 
     public MongoDBDataStore(String host, int port, String database, String user, String password) {
         MongoCredential cred = MongoCredential.createCredential(user, database, password.toCharArray());
@@ -124,44 +121,34 @@ public class MongoDBDataStore implements DataStore {
     }
 
     @Override
-    public PaginationList getListings() {
+    public List<Listing> getListings() {
         try (MongoClient client = getClient()) {
             FindIterable<Document> docs = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).find(Filters.all("tags", MongoTags.marketListingTags));
-            List<Text> texts = new ArrayList<>();
+            List<Listing> listings = new ArrayList<>();
             docs.forEach((Consumer<? super Document>) document -> {
                 Listing listing = new Listing(document, getNameFromUUIDCache(document.getString("Seller")));
                 if (listing.getItemStack() == null) return;
-                texts.add(listing.getListingsText());
+                listings.add(listing);
             });
-            return market.getPaginationService().builder().contents(texts).title(Texts.MARKET_LISTINGS).build();
+            return listings;
         }
     }
 
     @Override
+    public PaginationList getListingsPagination() {
+        List<Text> texts = new ArrayList<>();
+        getListings().forEach(listing -> texts.add(listing.getListingsText()));
+        return market.getPaginationService().builder().contents(texts).title(Texts.MARKET_LISTINGS).build();
+    }
+
+    @Override
     public StateContainer getListingsGUI() {
-        try (MongoClient client = getClient()) {
-            StateContainer sc = new StateContainer();
-            FindIterable<Document> docs = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).find(Filters.all("tags", MongoTags.marketListingTags));
-            Page.PageBuilder p = Page.builder().setAutoPaging(true).setTitle(Texts.MARKET_BASE).setInventoryDimension(InventoryDimension.of(6,6)).setEmptyStack(ItemStack.builder().itemType(ItemTypes.STAINED_GLASS_PANE).add(Keys.DYE_COLOR, DyeColors.GREEN).add(Keys.DISPLAY_NAME, Text.of("")).build());
-            docs.forEach((Consumer<? super Document>) document -> {
-                Optional<ItemStack> is = market.deserializeItemStack(document.getString("Item"));
-                is.ifPresent(itemStack -> {
-                    ItemStack i = is.get().copy();
-                    i.setQuantity(document.getInteger("Quantity"));
-                    List<Text> lore = new ArrayList<>();
-                    lore.add(Texts.guiListing.apply(document).build());
-                    lore.add(Text.builder().color(TextColors.WHITE).append(Text.of("Seller: " + getNameFromUUIDCache(document.getString("Seller")))).build());
-
-                    i.offer(Keys.ITEM_LORE, lore);
-
-                    CommandAction ca = new CommandAction(sc, ActionType.CLOSE, "0", "market check " + document.getString("ID"));
-                    p.addElement(new ActionableElement(ca, i));
-                });
-            });
-            sc.setInitialState(p.build("0"));
-            sc.addState(new State("1"));
-            return sc;
-        }
+        StateContainer sc = new StateContainer();
+        Page.PageBuilder p = Page.builder().setAutoPaging(true).setTitle(Texts.MARKET_BASE).setInventoryDimension(InventoryDimension.of(6,6)).setEmptyStack(ItemStack.builder().itemType(ItemTypes.STAINED_GLASS_PANE).add(Keys.DYE_COLOR, DyeColors.GREEN).add(Keys.DISPLAY_NAME, Text.of("")).build());
+        getListings().forEach(listing -> p.addElement(listing.getActionableElement(sc)));
+        sc.setInitialState(p.build("0"));
+        sc.addState(new State("1"));
+        return sc;
     }
 
     @Override

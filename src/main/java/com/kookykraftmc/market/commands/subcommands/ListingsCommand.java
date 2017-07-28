@@ -12,15 +12,19 @@ import org.spongepowered.api.entity.living.player.Player;
  * Created by TimeTheCat on 3/18/2017.
  */
 public class ListingsCommand implements CommandExecutor {
-    private Market pl = Market.instance;
+    private final Market pl = Market.instance;
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        if (pl.isChestGUIDefault()) {
-            if (args.hasAny("g")) pl.getDataStore().getListings().sendTo(src);
-            else pl.getDataStore().getListingsGUI().copy().launchFor((Player) src);
+        if (pl.isHuskyUILoaded()) {
+            if (pl.isChestGUIDefault()) {
+                if (args.hasAny("g")) pl.getDataStore().getListingsPagination().sendTo(src);
+                else pl.getDataStore().getListingsGUI().copy().launchFor((Player) src);
+            } else {
+                if (args.hasAny("g")) pl.getDataStore().getListingsGUI().copy().launchFor((Player) src);
+                else pl.getDataStore().getListingsPagination().sendTo(src);
+            }
         } else {
-            if (args.hasAny("g")) pl.getDataStore().getListingsGUI().copy().launchFor((Player) src);
-            else pl.getDataStore().getListings().sendTo(src);
+            pl.getDataStore().getListingsPagination().sendTo(src);
         }
 
         return CommandResult.success();

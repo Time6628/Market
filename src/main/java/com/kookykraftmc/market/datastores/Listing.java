@@ -1,25 +1,29 @@
 package com.kookykraftmc.market.datastores;
 
+import com.codehusky.huskyui.StateContainer;
+import com.codehusky.huskyui.states.action.ActionType;
+import com.codehusky.huskyui.states.action.CommandAction;
+import com.codehusky.huskyui.states.element.ActionableElement;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.Texts;
 import org.bson.Document;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class Listing {
 
-    private ItemStack itemStack;
-    private int price;
-    private int quantity;
-    private UUID seller;
-    private String sellerName;
-    private String id;
+    private final ItemStack itemStack;
+    private final int price;
+    private final int quantity;
+    private final UUID seller;
+    private final String sellerName;
+    private final String id;
+    private final Map<String, ?> source;
 
     public Listing(Map<String, String> r, String id, String sellerName) {
         Optional<ItemStack> is = Market.instance.deserializeItemStack(r.get("Item"));
@@ -29,6 +33,7 @@ public class Listing {
         this.seller = UUID.fromString(r.get("Seller"));
         this.id = id;
         this.sellerName = sellerName;
+        this.source = r;
     }
 
 
@@ -39,6 +44,8 @@ public class Listing {
         this.quantity = doc.getInteger("Quantity");
         this.seller = UUID.fromString(doc.getString("Seller"));
         this.id = String.valueOf(doc.getInteger("ID"));
+        this.sellerName = sellerName;
+        this.source = doc;
     }
 
     public Text getListingsText() {
@@ -83,5 +90,17 @@ public class Listing {
 
     public String getId() {
         return id;
+    }
+
+    public ActionableElement getActionableElement(StateContainer sc) {
+        ItemStack i = itemStack.copy();
+        i.setQuantity(quantity);
+        List<Text> lore = new ArrayList<>();
+        lore.add(Texts.guiListing.apply(source).build());
+        lore.add(Text.builder().color(TextColors.WHITE).append(Text.of("Seller: " + sellerName)).build());
+
+        i.offer(Keys.ITEM_LORE, lore);
+        CommandAction ca = new CommandAction(sc, ActionType.CLOSE, "0", "market check " + id, CommandAction.CommandReceiver.PLAYER);
+        return new ActionableElement(ca, i);
     }
 }

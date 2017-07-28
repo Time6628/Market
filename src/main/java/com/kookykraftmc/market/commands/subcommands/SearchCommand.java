@@ -20,7 +20,7 @@ import java.util.Optional;
  * Created by TimeTheCat on 3/26/2017.
  */
 public class SearchCommand implements CommandExecutor {
-    static Market pl = Market.instance;
+    private static final Market pl = Market.instance;
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         List<Text> texts = new ArrayList<>();

@@ -3,9 +3,6 @@ package com.kookykraftmc.market.datastores.redis;
 import com.codehusky.huskyui.StateContainer;
 import com.codehusky.huskyui.states.Page;
 import com.codehusky.huskyui.states.State;
-import com.codehusky.huskyui.states.action.ActionType;
-import com.codehusky.huskyui.states.action.CommandAction;
-import com.codehusky.huskyui.states.element.ActionableElement;
 import com.google.common.collect.Lists;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.Texts;
@@ -40,11 +37,12 @@ import static org.spongepowered.api.Sponge.getScheduler;
 
 public class RedisDataStore implements DataStore {
 
-    private Market plugin = Market.instance;
-    private JedisPool jedisPool;
-    private String redisPass, redisHost;
-    private int redisPort;
-    RedisPubSub sub;
+    private final Market plugin = Market.instance;
+    private final JedisPool jedisPool;
+    private final String redisPass;
+    private final String redisHost;
+    private final int redisPort;
+    private RedisPubSub sub;
     private List<String> blacklistedItems;
 
     public RedisDataStore(String host, int port) {
@@ -173,54 +171,35 @@ public class RedisDataStore implements DataStore {
     }
 
     @Override
-    public PaginationList getListings() {
+    public List<Listing> getListings() {
         try (Jedis jedis = getJedis().getResource()) {
             Set<String> openListings = jedis.hgetAll(RedisKeys.FOR_SALE).keySet();
-            List<Text> texts = new ArrayList<>();
-            for (String openListing : openListings) {
-                Map<String, String> listing = jedis.hgetAll(RedisKeys.MARKET_ITEM_KEY(openListing));
-                Listing l = new Listing(listing, openListing, jedis.hget(RedisKeys.UUID_CACHE, listing.get("Seller")));
-                if (l.getItemStack() == null) continue;
-                texts.add(l.getListingsText());
-            }
-            return plugin.getPaginationService().builder().contents(texts).title(Texts.MARKET_LISTINGS).build();
+            List<Listing> listings = new ArrayList<>();
+            openListings.forEach(s -> {
+                Map<String, String> listing = jedis.hgetAll(RedisKeys.MARKET_ITEM_KEY(s));
+                Listing l = new Listing(listing, s, jedis.hget(RedisKeys.UUID_CACHE, listing.get("Seller")));
+                if (l.getItemStack() == null) return;
+                listings.add(l);
+            });
+            return listings;
         }
     }
 
     @Override
+    public PaginationList getListingsPagination() {
+        List<Text> texts = new ArrayList<>();
+        getListings().forEach(listing -> texts.add(listing.getListingsText()));
+        return plugin.getPaginationService().builder().contents(texts).title(Texts.MARKET_LISTINGS).build();
+    }
+
+    @Override
     public StateContainer getListingsGUI() {
-        try (Jedis jedis = getJedis().getResource()) {
-            //create new state container
-            StateContainer sc = new StateContainer();
-            //get all the listings for sale
-            Set<String> openListings = jedis.hgetAll(RedisKeys.FOR_SALE).keySet();
-            //create a new page builder
-            Page.PageBuilder p = Page.builder().setAutoPaging(true).setTitle(Texts.MARKET_BASE).setInventoryDimension(InventoryDimension.of(6,6)).setEmptyStack(ItemStack.builder().itemType(ItemTypes.STAINED_GLASS_PANE).add(Keys.DYE_COLOR, DyeColors.GREEN).add(Keys.DISPLAY_NAME, Text.of("")).build());
-            //add all the listings to the pages
-            openListings.forEach(ol -> {
-                //get the listing info
-                Map<String, String> listing = jedis.hgetAll(RedisKeys.MARKET_ITEM_KEY(ol));
-                //check if the item can be deserialized
-                Optional<ItemStack> is = plugin.deserializeItemStack(listing.get("Item"));
-                is.ifPresent(itemStack -> {
-                    //get the item stack
-                    ItemStack i = is.get().copy();
-                    i.setQuantity(Integer.valueOf(listing.get("Quantity")));
-                    List<Text> lore = new ArrayList<>();
-                    lore.add(Texts.guiListing.apply(listing).build());
-                    lore.add(Text.builder().color(TextColors.WHITE).append(Text.of("Seller: " + jedis.hget(RedisKeys.UUID_CACHE, listing.get("Seller")))).build());
-
-                    i.offer(Keys.ITEM_LORE, lore);
-
-                    CommandAction ca = new CommandAction(sc, ActionType.CLOSE, "0", ("market check " + ol), CommandAction.CommandReceiver.PLAYER);
-
-                    p.addElement(new ActionableElement(ca, i));
-                });
-            });
-            sc.setInitialState(p.build("0"));
-            sc.addState(new State("1"));
-            return sc;
-        }
+        StateContainer sc = new StateContainer();
+        Page.PageBuilder p = Page.builder().setAutoPaging(true).setTitle(Texts.MARKET_BASE).setInventoryDimension(InventoryDimension.of(6,6)).setEmptyStack(ItemStack.builder().itemType(ItemTypes.STAINED_GLASS_PANE).add(Keys.DYE_COLOR, DyeColors.GREEN).add(Keys.DISPLAY_NAME, Text.of("")).build());
+        getListings().forEach(listing -> p.addElement(listing.getActionableElement(sc)));
+        sc.setInitialState(p.build("0"));
+        sc.addState(new State("1"));
+        return sc;
     }
 
     @Override

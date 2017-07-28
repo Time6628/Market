@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  * Created by TimeTheCat on 3/18/2017.
  */
 public class BuyCommand implements CommandExecutor {
-    Market pl = Market.instance;
+    private final Market pl = Market.instance;
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         Optional<String> id = args.getOne(Text.of("id"));

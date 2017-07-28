@@ -12,7 +12,7 @@ import org.spongepowered.api.command.spec.CommandExecutor;
  * Created by TimeTheCat on 3/10/2017.
  */
 public class MarketCommand implements CommandExecutor {
-    private Market pl = Market.instance;
+    private final Market pl = Market.instance;
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
 

@@ -12,13 +12,10 @@ import com.kookykraftmc.market.datastores.mongo.MongoDBDataStore;
 import com.kookykraftmc.market.datastores.redis.RedisDataStore;
 import com.kookykraftmc.market.datastores.redis.RedisKeys;
 import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.GuiceObjectMapperFactory;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.DefaultConfig;
@@ -33,6 +30,7 @@ import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.scheduler.Scheduler;
 import org.spongepowered.api.service.economy.EconomyService;
@@ -44,7 +42,14 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 
-@Plugin(id = "market", name = "Market", description = "Market", url = "https://kookykraftmc.net", authors = {"TimeTheCat"}, version = "0.2.2")
+@Plugin(id = "market",
+        name = "Market",
+        description = "Market",
+        url = "https://kookykraftmc.net",
+        authors = {"TimeTheCat"},
+        version = "0.2.3",
+        dependencies = @Dependency(id = "huskyui", optional = true)
+)
 public class Market {
 
     public static Market instance;
@@ -213,31 +218,6 @@ public class Market {
         getDataStore().updateUUIDCache(player);
     }
 
-    /*////////////////////////////// REDIS /////////////////////////////////
-    private JedisPool setupRedis(String host, int port) {
-        JedisPoolConfig config = new JedisPoolConfig();
-        config.setMaxTotal(128);
-        return new JedisPool(config, host, port, 0);
-    }
-
-    private JedisPool setupRedis(String host, int port, String password) {
-        JedisPoolConfig config = new JedisPoolConfig();
-        config.setMaxTotal(128);
-        return new JedisPool(config, host, port, 0, password);
-    }
-
-    public JedisPool getJedis() {
-        if (jedisPool == null) {
-            if (this.cfg.getNode("redis", "use-password").getBoolean()) {
-                return setupRedis(this.redisHost, this.redisPort, this.redisPass);
-            } else {
-                return setupRedis(this.redisHost, this.redisPort);
-            }
-        } else {
-            return jedisPool;
-        }
-    }*/
-
     public PaginationService getPaginationService() {
         return game.getServiceManager().provide(PaginationService.class).get();
     }
@@ -246,7 +226,7 @@ public class Market {
         return serverName;
     }
 
-    public Game getGame() {
+    private Game getGame() {
         return game;
     }
 
@@ -328,6 +308,10 @@ public class Market {
 
     public DataStore getDataStore() {
         return dataStore;
+    }
+
+    public boolean isHuskyUILoaded() {
+        return game.getPluginManager().isLoaded("huskyui");
     }
 
     public boolean isChestGUIDefault() {

@@ -19,7 +19,7 @@ import java.util.Optional;
  * Created by TimeTheCat on 3/14/2017.
  */
 public class CreateCommand implements CommandExecutor {
-    Market pl = Market.instance;
+    private final Market pl = Market.instance;
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (src instanceof ConsoleSource) return CommandResult.success();
