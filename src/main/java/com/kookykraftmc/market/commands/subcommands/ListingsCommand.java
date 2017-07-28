@@ -1,6 +1,7 @@
 package com.kookykraftmc.market.commands.subcommands;
 
 import com.kookykraftmc.market.Market;
+import com.kookykraftmc.market.datastores.UIManager;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -18,9 +19,9 @@ public class ListingsCommand implements CommandExecutor {
         if (pl.isHuskyUILoaded()) {
             if (pl.isChestGUIDefault()) {
                 if (args.hasAny("g")) pl.getDataStore().getListingsPagination().sendTo(src);
-                else pl.getDataStore().getListingsGUI().copy().launchFor((Player) src);
+                else UIManager.getStateContainer(pl.getDataStore().getListings()).launchFor((Player) src);
             } else {
-                if (args.hasAny("g")) pl.getDataStore().getListingsGUI().copy().launchFor((Player) src);
+                if (args.hasAny("g")) UIManager.getStateContainer(pl.getDataStore().getListings()).launchFor((Player) src);
                 else pl.getDataStore().getListingsPagination().sendTo(src);
             }
         } else {

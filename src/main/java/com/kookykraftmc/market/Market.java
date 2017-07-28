@@ -47,7 +47,7 @@ import java.util.*;
         description = "Market",
         url = "https://kookykraftmc.net",
         authors = {"TimeTheCat"},
-        version = "0.2.3",
+        version = "0.2.4",
         dependencies = @Dependency(id = "huskyui", optional = true)
 )
 public class Market {

@@ -1,13 +1,8 @@
 package com.kookykraftmc.market.datastores;
 
-import com.codehusky.huskyui.StateContainer;
-import com.codehusky.huskyui.states.action.ActionType;
-import com.codehusky.huskyui.states.action.CommandAction;
-import com.codehusky.huskyui.states.element.ActionableElement;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.Texts;
 import org.bson.Document;
-import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
@@ -92,15 +87,11 @@ public class Listing {
         return id;
     }
 
-    public ActionableElement getActionableElement(StateContainer sc) {
-        ItemStack i = itemStack.copy();
-        i.setQuantity(quantity);
-        List<Text> lore = new ArrayList<>();
-        lore.add(Texts.guiListing.apply(source).build());
-        lore.add(Text.builder().color(TextColors.WHITE).append(Text.of("Seller: " + sellerName)).build());
+    public Map<String,?> getSource() {
+        return source;
+    }
 
-        i.offer(Keys.ITEM_LORE, lore);
-        CommandAction ca = new CommandAction(sc, ActionType.CLOSE, "0", "market check " + id, CommandAction.CommandReceiver.PLAYER);
-        return new ActionableElement(ca, i);
+    public String getSellerName() {
+        return sellerName;
     }
 }

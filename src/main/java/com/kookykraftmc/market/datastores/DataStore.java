@@ -1,6 +1,5 @@
 package com.kookykraftmc.market.datastores;
 
-import com.codehusky.huskyui.StateContainer;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -23,8 +22,6 @@ public interface DataStore {
     List<Listing> getListings();
 
     PaginationList getListingsPagination();
-
-    StateContainer getListingsGUI();
 
     List<ItemStack> removeListing(String id, String uuid, boolean staff);
 

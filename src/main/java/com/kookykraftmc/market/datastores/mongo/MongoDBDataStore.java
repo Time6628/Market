@@ -1,8 +1,5 @@
 package com.kookykraftmc.market.datastores.mongo;
 
-import com.codehusky.huskyui.StateContainer;
-import com.codehusky.huskyui.states.Page;
-import com.codehusky.huskyui.states.State;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.Texts;
 import com.kookykraftmc.market.datastores.DataStore;
@@ -14,14 +11,10 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
-import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.data.type.DyeColors;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.item.ItemType;
-import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.property.InventoryDimension;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
@@ -139,16 +132,6 @@ public class MongoDBDataStore implements DataStore {
         List<Text> texts = new ArrayList<>();
         getListings().forEach(listing -> texts.add(listing.getListingsText()));
         return market.getPaginationService().builder().contents(texts).title(Texts.MARKET_LISTINGS).build();
-    }
-
-    @Override
-    public StateContainer getListingsGUI() {
-        StateContainer sc = new StateContainer();
-        Page.PageBuilder p = Page.builder().setAutoPaging(true).setTitle(Texts.MARKET_BASE).setInventoryDimension(InventoryDimension.of(6,6)).setEmptyStack(ItemStack.builder().itemType(ItemTypes.STAINED_GLASS_PANE).add(Keys.DYE_COLOR, DyeColors.GREEN).add(Keys.DISPLAY_NAME, Text.of("")).build());
-        getListings().forEach(listing -> p.addElement(listing.getActionableElement(sc)));
-        sc.setInitialState(p.build("0"));
-        sc.addState(new State("1"));
-        return sc;
     }
 
     @Override
