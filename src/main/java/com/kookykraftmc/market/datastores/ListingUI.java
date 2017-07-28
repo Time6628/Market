@@ -15,24 +15,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ListingUI extends Listing {
-    public ListingUI(Map<String, String> r, String id, String sellerName) {
-        super(r, id, sellerName);
-    }
+public class ListingUI {
 
-    public ListingUI(Document doc, String sellerName) {
-        super(doc, sellerName);
+    private final Listing listing;
+
+    public ListingUI(Listing listing) {
+        this.listing = listing;
     }
 
     public ActionableElement getActionableElement(StateContainer sc) {
-        ItemStack i = getItemStack().copy();
-        i.setQuantity(getQuantity());
+        ItemStack i = listing.getItemStack().copy();
+        i.setQuantity(listing.getQuantity());
         List<Text> lore = new ArrayList<>();
-        lore.add(Texts.guiListing.apply(getSource()).build());
-        lore.add(Text.builder().color(TextColors.WHITE).append(Text.of("Seller: " + getSellerName())).build());
+        lore.add(Texts.guiListing.apply(listing.getSource()).build());
+        lore.add(Text.builder().color(TextColors.WHITE).append(Text.of("Seller: " + listing.getSellerName())).build());
 
         i.offer(Keys.ITEM_LORE, lore);
-        CommandAction ca = new CommandAction(sc, ActionType.CLOSE, "0", "market check " + getId(), CommandAction.CommandReceiver.PLAYER);
+        CommandAction ca = new CommandAction(sc, ActionType.CLOSE, "0", "market check " + listing.getId(), CommandAction.CommandReceiver.PLAYER);
         return new ActionableElement(ca, i);
     }
 }

@@ -17,7 +17,7 @@ public class UIManager {
     public static StateContainer getStateContainer(List<Listing> listings) {
         StateContainer sc = new StateContainer();
         Page.PageBuilder p = Page.builder().setAutoPaging(true).setTitle(Texts.MARKET_BASE).setInventoryDimension(InventoryDimension.of(6,6)).setEmptyStack(ItemStack.builder().itemType(ItemTypes.STAINED_GLASS_PANE).add(Keys.DYE_COLOR, DyeColors.GREEN).add(Keys.DISPLAY_NAME, Text.of("")).build());
-        listings.forEach(listing -> p.addElement(((ListingUI) listing).getActionableElement(sc)));
+        listings.forEach(listing -> p.addElement(new ListingUI(listing).getActionableElement(sc)));
         sc.setInitialState(p.build("0"));
         return sc;
     }

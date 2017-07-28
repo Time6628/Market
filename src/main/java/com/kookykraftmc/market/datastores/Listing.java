@@ -87,7 +87,7 @@ public class Listing {
         return id;
     }
 
-    public Map<String,?> getSource() {
+    public Map<String, ?> getSource() {
         return source;
     }
 
