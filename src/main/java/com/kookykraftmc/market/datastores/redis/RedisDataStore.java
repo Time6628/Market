@@ -62,6 +62,7 @@ public class RedisDataStore implements DataStore {
         this.redisPass = password;
         this.jedisPool = setupRedis(redisHost, redisPort, password);
         subscribe();
+        updateBlackList();
     }
 
     private JedisPool setupRedis(String host, int port) {
