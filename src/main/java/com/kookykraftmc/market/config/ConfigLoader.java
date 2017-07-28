@@ -21,10 +21,12 @@ public class ConfigLoader {
 
     public boolean loadConfig() {
         try {
-            File file = null;
+            File file;
             Files.createDirectories(this.market.configDir.getParent());
             if (Files.notExists(market.configDir)) {
                 file = Files.createFile(market.configDir).toFile();
+            } else {
+                file = market.configDir.toFile();
             }
             ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setFile(file).build();
             CommentedConfigurationNode cfg = loader.load(ConfigurationOptions.defaults().setObjectMapperFactory(market.factory).setShouldCopyDefaults(true));
