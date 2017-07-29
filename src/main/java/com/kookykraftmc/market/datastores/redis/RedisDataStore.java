@@ -3,6 +3,7 @@ package com.kookykraftmc.market.datastores.redis;
 import com.google.common.collect.Lists;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.Texts;
+import com.kookykraftmc.market.config.MarketConfig;
 import com.kookykraftmc.market.datastores.DataStore;
 import com.kookykraftmc.market.datastores.Listing;
 import org.spongepowered.api.block.BlockType;
@@ -38,42 +39,31 @@ public class RedisDataStore implements DataStore {
     private RedisPubSub sub;
     private List<String> blacklistedItems;
 
-    public RedisDataStore(String host, int port) {
-        this.redisHost = host;
-        this.redisPort = port;
-        this.redisPass = null;
-        this.jedisPool = setupRedis(redisHost, redisPort);
+    public RedisDataStore(MarketConfig.RedisDataStore config) {
+        this.redisPort = config.port;
+        this.redisPass = config.password;
+        this.redisHost = config.host;
+        this.jedisPool = setupRedis();
         subscribe();
         updateBlackList();
     }
 
-    public RedisDataStore(String host, int port, String password) {
-        this.redisHost = host;
-        this.redisPort = port;
-        this.redisPass = password;
-        this.jedisPool = setupRedis(redisHost, redisPort, password);
-        subscribe();
-        updateBlackList();
-    }
-
-    private JedisPool setupRedis(String host, int port) {
+    private JedisPool setupRedis() {
         JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxTotal(128);
-        return new JedisPool(config, host, port, 0);
-    }
-
-    private JedisPool setupRedis(String host, int port, String password) {
-        JedisPoolConfig config = new JedisPoolConfig();
-        config.setMaxTotal(128);
-        return new JedisPool(config, host, port, 0, password);
+        if (!redisPass.equals("")) {
+            return new JedisPool(config, this.redisHost, this.redisPort, 0, this.redisPass);
+        } else {
+            return new JedisPool(config, this.redisHost, this.redisPort, 0);
+        }
     }
 
     private JedisPool getJedis() {
         if (jedisPool == null) {
             if (this.redisPass != null) {
-                return setupRedis(this.redisHost, this.redisPort, this.redisPass);
+                return setupRedis();
             } else {
-                return setupRedis(this.redisHost, this.redisPort);
+                return setupRedis();
             }
         } else {
             return jedisPool;

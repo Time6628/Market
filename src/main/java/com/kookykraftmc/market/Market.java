@@ -88,27 +88,15 @@ public class Market {
     public void onInit(GameInitializationEvent event) {
         instance = this;
         marketCause = NamedCause.of("Market", this);
+        serverName = cfg.server;
 
-        if (cfg.redis.enabled && !cfg.mongo.enabled) {
+        if (cfg.dataStore.equals("redis")) {
+            getLogger().info("Redis enabled.");
             RedisKeys.UUID_CACHE = cfg.redis.keys.uuidCache;
-
-            int redisPort = cfg.redis.port;
-            String redisHost = cfg.redis.host;
-            String redisPass = cfg.redis.password;
-            this.serverName = cfg.server;
-
-            if (!cfg.redis.password.equals(""))
-                dataStore = new RedisDataStore(redisHost, redisPort, redisPass);
-            else
-                dataStore = new RedisDataStore(redisHost, redisPort);
-
-        } else if (cfg.mongo.enabled && !cfg.redis.enabled) {
-            String host = cfg.mongo.host;
-            int port = cfg.mongo.port;
-            String database = cfg.mongo.database;
-            String user = cfg.mongo.username;
-            String pass = cfg.mongo.password;
-            this.dataStore = new MongoDBDataStore(host, port, database, user, pass);
+            this.dataStore = new RedisDataStore(cfg.redis);
+        } else if (cfg.dataStore.equals("mongo")) {
+            getLogger().info("MongoDB enabled.");
+            this.dataStore = new MongoDBDataStore(cfg.mongo);
         }
 
         CommandSpec createMarketCmd = CommandSpec.builder()

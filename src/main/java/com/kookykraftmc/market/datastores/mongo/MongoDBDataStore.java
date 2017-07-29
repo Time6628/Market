@@ -2,6 +2,7 @@ package com.kookykraftmc.market.datastores.mongo;
 
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.Texts;
+import com.kookykraftmc.market.config.MarketConfig;
 import com.kookykraftmc.market.datastores.DataStore;
 import com.kookykraftmc.market.datastores.Listing;
 import com.mongodb.MongoClient;
@@ -33,10 +34,10 @@ public class MongoDBDataStore implements DataStore {
     private final MongoClient mongoClient;
     private final String databaseName;
 
-    public MongoDBDataStore(String host, int port, String database, String user, String password) {
-        MongoCredential cred = MongoCredential.createCredential(user, database, password.toCharArray());
-        mongoClient = new MongoClient(new ServerAddress(host, port), Collections.singletonList(cred));
-        databaseName = database;
+    public MongoDBDataStore(MarketConfig.MongoDataStore config) {
+        MongoCredential cred = MongoCredential.createCredential(config.username, config.database, config.password.toCharArray());
+        mongoClient = new MongoClient(new ServerAddress(config.host, config.port), Collections.singletonList(cred));
+        databaseName = config.database;
         setupDB();
     }
 

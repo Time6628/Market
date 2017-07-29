@@ -13,6 +13,9 @@ public class MarketConfig {
     @Setting(value = "Server", comment = "Name of the server to be used when storing data.")
     public final String server = "TEST";
 
+    @Setting(value = "DataStore", comment = "Set to 'redis' if you are using redis, set to 'mongo' if you are using MongoDB.")
+    public final String dataStore = "redis";
+
     @Setting("Redis")
     public final RedisDataStore redis = new RedisDataStore();
 
@@ -25,9 +28,6 @@ public class MarketConfig {
 
     @ConfigSerializable
     public static class RedisDataStore {
-
-        @Setting("Enabled")
-        public final boolean enabled = true;
 
         @Setting("Host")
         public final String host = "localhost";
@@ -50,8 +50,6 @@ public class MarketConfig {
 
     @ConfigSerializable
     public static class MongoDataStore {
-        @Setting(value = "Enabled", comment = "You can have Redis or MongoDB enabled, but not both at the moment.")
-        public final boolean enabled = false;
 
         @Setting("Host")
         public final String host = "localhost";
