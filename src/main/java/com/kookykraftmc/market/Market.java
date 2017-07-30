@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
+import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.data.persistence.DataTranslators;
@@ -61,8 +62,8 @@ public class Market {
     private Game game;
 
     @Inject
-    @DefaultConfig(sharedRoot = false)
-    public Path configDir;
+    @ConfigDir(sharedRoot = false)
+    public File configDir;
 
     @Inject
     public GuiceObjectMapperFactory factory;

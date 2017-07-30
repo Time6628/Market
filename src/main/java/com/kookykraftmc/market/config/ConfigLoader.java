@@ -17,21 +17,21 @@ public class ConfigLoader {
 
     public ConfigLoader(Market market) {
         this.market = market;
+        if (!market.configDir.exists()) {
+            market.configDir.mkdirs();
+        }
     }
 
     public boolean loadConfig() {
         try {
-            File file;
-            Files.createDirectories(this.market.configDir.getParent());
-            if (Files.notExists(market.configDir)) {
-                file = Files.createFile(market.configDir).toFile();
-            } else {
-                file = market.configDir.toFile();
+            File file = new File(market.configDir, "market.conf");
+            if (!file.exists()) {
+                file.createNewFile();
             }
             ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setFile(file).build();
-            CommentedConfigurationNode cfg = loader.load(ConfigurationOptions.defaults().setObjectMapperFactory(market.factory).setShouldCopyDefaults(true));
-            marketConfig = cfg.getValue(TypeToken.of(MarketConfig.class), new MarketConfig());
-            loader.save(cfg);
+            CommentedConfigurationNode config = loader.load(ConfigurationOptions.defaults().setObjectMapperFactory(market.factory).setShouldCopyDefaults(true));
+            marketConfig = config.getValue(TypeToken.of(MarketConfig.class), new MarketConfig());
+            loader.save(config);
             return true;
         } catch (Exception e) {
             market.getLogger().error("Could not load config.", e);

@@ -11,40 +11,41 @@ public class MarketConfig {
     public double version = 0.2;
 
     @Setting(value = "Server", comment = "Name of the server to be used when storing data.")
-    public final String server = "TEST";
+    public String server = "TEST";
 
     @Setting(value = "DataStore", comment = "Set to 'redis' if you are using redis, set to 'mongo' if you are using MongoDB.")
-    public final String dataStore = "redis";
+    public String dataStore = "redis";
 
     @Setting("Redis")
-    public final RedisDataStore redis = new RedisDataStore();
+    public RedisDataStore redis = new RedisDataStore();
 
     @Setting("MongoDB")
-    public final MongoDataStore mongo = new MongoDataStore();
+    public MongoDataStore mongo = new MongoDataStore();
 
     @Setting(value = "Chest-Is-Default", comment = "Should the chest GUI be the default gui instead of the chat gui.")
-    public final boolean chestDefault = false;
+    public boolean chestDefault = false;
 
 
     @ConfigSerializable
     public static class RedisDataStore {
 
         @Setting("Host")
-        public final String host = "localhost";
+        public String host = "localhost";
 
         @Setting("Port")
-        public final int port = 6379;
+        public int port = 6379;
 
         @Setting("Password")
-        public final String password = "";
+        public String password = "";
 
         @Setting("Keys")
-        public final Keys keys = new Keys();
+        public Keys keys = new Keys();
 
         @ConfigSerializable
         public static class Keys {
+
             @Setting(value = "UUID-Cache")
-            public final String uuidCache = "market:uuidcache";
+            public String uuidCache = "market:uuidcache";
         }
     }
 
@@ -52,18 +53,18 @@ public class MarketConfig {
     public static class MongoDataStore {
 
         @Setting("Host")
-        public final String host = "localhost";
+        public String host = "localhost";
 
         @Setting("Port")
-        public final int port = 27017;
+        public int port = 27017;
 
         @Setting("User")
-        public final String username = "admin";
+        public String username = "admin";
 
         @Setting("Password")
-        public final String password = "";
+        public String password = "";
 
         @Setting("DataBase")
-        public final String database = "database";
+        public String database = "database";
     }
 }
