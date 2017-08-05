@@ -7,6 +7,7 @@ import com.kookykraftmc.market.commands.subcommands.blacklist.BlacklistAddComman
 import com.kookykraftmc.market.commands.subcommands.blacklist.BlacklistRemoveCommand;
 import com.kookykraftmc.market.config.ConfigLoader;
 import com.kookykraftmc.market.config.MarketConfig;
+import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.datastores.*;
 import com.kookykraftmc.market.datastores.mongo.MongoDBDataStore;
 import com.kookykraftmc.market.datastores.redis.RedisDataStore;
@@ -40,7 +41,6 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 
 import java.io.*;
-import java.nio.file.Path;
 import java.util.*;
 
 @Plugin(id = "market",
@@ -75,14 +75,14 @@ public class Market {
     private DataStore dataStore;
 
     private MarketConfig cfg;
+    private Texts texts;
 
     @Listener
     public void onPreInit(GamePreInitializationEvent event) {
         logger.info("Loading config...");
         ConfigLoader configLoader = new ConfigLoader(this);
-        if (configLoader.loadConfig()) {
-            cfg = configLoader.getMarketConfig();
-        }
+        if (configLoader.loadConfig()) cfg = configLoader.getMarketConfig();
+        if (configLoader.loadTexts()) texts = configLoader.getTexts();
     }
 
     @Listener

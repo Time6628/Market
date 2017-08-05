@@ -2,7 +2,7 @@ package com.kookykraftmc.market.datastores.redis;
 
 import com.google.common.collect.Lists;
 import com.kookykraftmc.market.Market;
-import com.kookykraftmc.market.Texts;
+import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.config.MarketConfig;
 import com.kookykraftmc.market.datastores.DataStore;
 import com.kookykraftmc.market.datastores.Listing;
@@ -26,8 +26,6 @@ import redis.clients.jedis.Transaction;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static org.spongepowered.api.Sponge.getScheduler;
 
 public class RedisDataStore implements DataStore {
 
@@ -79,7 +77,8 @@ public class RedisDataStore implements DataStore {
 
     @Override
     public void subscribe() {
-        getScheduler().createAsyncExecutor(plugin)
+        plugin.getScheduler().createTaskBuilder()
+                .async()
                 .execute(() -> {
                     sub = new RedisPubSub(this);
                     try (Jedis jedis = getJedis().getResource()) {
@@ -246,7 +245,7 @@ public class RedisDataStore implements DataStore {
                             .build())
                     .build());
 
-            return plugin.getPaginationService().builder().title(Texts.MARKET_LISTING(id)).contents(texts).build();
+            return plugin.getPaginationService().builder().title(Texts.MARKET_LISTING.apply(Collections.singletonMap("id", id)).build()).contents(texts).build();
         }
     }
 

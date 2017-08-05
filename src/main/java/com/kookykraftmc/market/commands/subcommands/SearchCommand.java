@@ -36,9 +36,7 @@ public class SearchCommand implements CommandExecutor {
             Optional<ItemType> oit = args.getOne(Text.of("item"));
             if (oit.isPresent()) {
                 pl.getDataStore().searchForItem(oit.get()).sendTo(src);
-            } else {
-                src.sendMessage(Text.of(TextColors.RED, "Invalid item type."));
-            }
+            } else throw new CommandException(Text.of(TextColors.RED, "Invalid item type."));
             return CommandResult.success();
         }
     }
@@ -49,9 +47,7 @@ public class SearchCommand implements CommandExecutor {
             Optional<User> ou = args.getOne(Text.of("user"));
             if (ou.isPresent()) {
                 pl.getDataStore().searchForUUID(ou.get().getUniqueId()).sendTo(src);
-            } else {
-                src.sendMessage(Text.of(TextColors.RED, "Invalid player name."));
-            }
+            } else throw new CommandException(Text.of(TextColors.RED, "Invalid player name."));
             return CommandResult.success();
         }
     }

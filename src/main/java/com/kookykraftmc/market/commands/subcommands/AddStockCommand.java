@@ -1,7 +1,7 @@
 package com.kookykraftmc.market.commands.subcommands;
 
 import com.kookykraftmc.market.Market;
-import com.kookykraftmc.market.Texts;
+import com.kookykraftmc.market.config.Texts;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -32,7 +32,7 @@ public class AddStockCommand implements CommandExecutor {
                     player.setItemInHand(HandTypes.MAIN_HAND, null);
                 } else player.sendMessage(Texts.COULD_NOT_ADD_STOCK);
             });
-        } else player.sendMessage(Texts.AIR_ITEM);
+        } else throw new CommandException(Texts.AIR_ITEM);
         return CommandResult.success();
     }
 }

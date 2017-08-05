@@ -1,7 +1,7 @@
 package com.kookykraftmc.market.tasks;
 
 import com.kookykraftmc.market.Market;
-import com.kookykraftmc.market.Texts;
+import com.kookykraftmc.market.config.Texts;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.entity.Hotbar;

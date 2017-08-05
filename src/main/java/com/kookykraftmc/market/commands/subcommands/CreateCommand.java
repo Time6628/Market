@@ -1,7 +1,7 @@
 package com.kookykraftmc.market.commands.subcommands;
 
 import com.kookykraftmc.market.Market;
-import com.kookykraftmc.market.Texts;
+import com.kookykraftmc.market.config.Texts;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -29,15 +29,12 @@ public class CreateCommand implements CommandExecutor {
             Optional<Integer> oquan = args.getOne(Text.of("quantity"));
             if (oquan.isPresent()) {
                 int quan = oquan.get();
-                if (quan > itemStack.getQuantity()) {
-                    player.sendMessage(Texts.NOT_ENOUGH_ITEMS);
-                    return CommandResult.success();
-                }
+                if (quan > itemStack.getQuantity()) throw new CommandException(Texts.NOT_ENOUGH_ITEMS);
                 Optional<Integer> oprice = args.getOne(Text.of("price"));
                 oprice.ifPresent(integer -> {
                     int price = integer;
                     int v = pl.getDataStore().addListing(player, itemStack, quan, price);
-                    if (v == 0) player.sendMessage(Texts.COULD_NOT_MAKE_LISTNG);
+                    if (v == 0) player.sendMessage(Texts.COULD_NOT_MAKE_LISTING);
                     else if (v == -1) player.sendMessage(Texts.USE_ADD_STOCK);
                     else {
                         pl.getDataStore().getListing(String.valueOf(v)).sendTo(src);
@@ -46,7 +43,7 @@ public class CreateCommand implements CommandExecutor {
                 });
             }
         } else {
-            player.sendMessage(Texts.AIR_ITEM);
+            throw new CommandException(Texts.AIR_ITEM);
         }
         return CommandResult.success();
     }

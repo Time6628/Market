@@ -1,7 +1,7 @@
 package com.kookykraftmc.market.commands.subcommands;
 
 import com.kookykraftmc.market.Market;
-import com.kookykraftmc.market.Texts;
+import com.kookykraftmc.market.config.Texts;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -23,7 +23,7 @@ public class ListingInfoCommand implements CommandExecutor {
         if (oid.isPresent()) {
             PaginationList p = pl.getDataStore().getListing(oid.get());
             if (p != null) p.sendTo(src);
-        } else src.sendMessage(Texts.INVALID_LISTING);
+        } else throw new CommandException(Texts.INVALID_LISTING);
         return CommandResult.success();
     }
 }

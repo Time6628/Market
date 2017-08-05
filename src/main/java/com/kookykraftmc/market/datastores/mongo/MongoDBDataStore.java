@@ -1,7 +1,7 @@
 package com.kookykraftmc.market.datastores.mongo;
 
 import com.kookykraftmc.market.Market;
-import com.kookykraftmc.market.Texts;
+import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.config.MarketConfig;
 import com.kookykraftmc.market.datastores.DataStore;
 import com.kookykraftmc.market.datastores.Listing;
@@ -205,7 +205,7 @@ public class MongoDBDataStore implements DataStore {
                             .build())
                     .build());
 
-            return market.getPaginationService().builder().title(Texts.MARKET_LISTING(id)).contents(texts).build();
+            return market.getPaginationService().builder().title(Texts.MARKET_LISTING.apply(Collections.singletonMap("id", id)).build()).contents(texts).build();
         }
     }
 

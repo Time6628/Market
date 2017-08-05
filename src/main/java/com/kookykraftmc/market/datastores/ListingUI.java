@@ -4,8 +4,7 @@ import com.codehusky.huskyui.StateContainer;
 import com.codehusky.huskyui.states.action.ActionType;
 import com.codehusky.huskyui.states.action.CommandAction;
 import com.codehusky.huskyui.states.element.ActionableElement;
-import com.kookykraftmc.market.Texts;
-import org.bson.Document;
+import com.kookykraftmc.market.config.Texts;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
@@ -13,7 +12,6 @@ import org.spongepowered.api.text.format.TextColors;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class ListingUI {
 

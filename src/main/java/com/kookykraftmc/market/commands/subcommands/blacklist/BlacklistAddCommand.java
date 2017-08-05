@@ -1,7 +1,7 @@
 package com.kookykraftmc.market.commands.subcommands.blacklist;
 
 import com.kookykraftmc.market.Market;
-import com.kookykraftmc.market.Texts;
+import com.kookykraftmc.market.config.Texts;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -13,6 +13,7 @@ import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.ItemStack;
 
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -32,15 +33,15 @@ public class BlacklistAddCommand implements CommandExecutor {
                 if (bs.isPresent()) {
                     id = bs.get().getId();
                 }
-            } else {
-                id = si.getItem().getId();
-            }
+            } else id = si.getItem().getId();
             boolean s = pl.getDataStore().blacklistAddCmd(id);
-            if (s) src.sendMessage(Texts.ADD_TO_BLACKLIST(id));
-            else src.sendMessage(Texts.BLACKLIST_NO_ADD_2);
+            if (s) {
+                src.sendMessage(Texts.ADD_TO_BLACKLIST.apply(Collections.singletonMap("id", id)).build());
+                return CommandResult.success();
+            }
+            throw new CommandException(Texts.BLACKLIST_NO_ADD_2);
         } else {
-            src.sendMessage(Texts.BLACKLIST_NO_ADD);
+            throw new CommandException(Texts.BLACKLIST_NO_ADD);
         }
-        return CommandResult.success();
     }
 }
