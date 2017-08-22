@@ -21,7 +21,7 @@ public class ListingsCommand implements CommandExecutor {
                 if (args.hasAny("g")) pl.getDataStore().getListingsPagination().sendTo(src);
                 else UIManager.getStateContainer(pl.getDataStore().getListings()).launchFor((Player) src);
             } else {
-                if (args.hasAny("g")) UIManager.getStateContainer(pl.getDataStore().getListings()).launchFor((Player) src);
+                if (args.hasAny("g")) UIManager.getStateContainer(pl.getDataStore().getListings()).openState((Player) src, "0");
                 else pl.getDataStore().getListingsPagination().sendTo(src);
             }
         } else {

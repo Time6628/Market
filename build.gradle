@@ -1,32 +1,38 @@
 plugins {
-    id 'org.spongepowered.plugin' version '0.8.1'
-    id 'com.qixalite.spongestart' version '1.6.0'
-    id 'com.github.johnrengelman.shadow' version '1.2.3'
+    id "org.spongepowered.plugin" version "0.8.1"
+    id "com.qixalite.spongestart" version "1.6.0"
+    id "com.github.johnrengelman.shadow" version "1.2.3"
     id "ninja.miserable.blossom" version "1.0.1"
-    id 'java'
+    id "java"
+    id "idea"
 }
 
 group = pluginGroup
 version = pluginVersion
+if (System.getenv().BUILD_NUMBER != null) {
+    version += ".${System.getenv().BUILD_NUMBER}"
+} else {
+    version += ".0"
+}
 
 repositories {
     mavenCentral()
     jcenter()
     maven {
-        name 'sonatype'
-        url 'http://oss.sonatype.org/content/repositories/snapshots/'
+        name "sonatype"
+        url "http://oss.sonatype.org/content/repositories/snapshots/"
     }
     maven {
-        name 'jitpack.io'
-        url 'https://jitpack.io'
+        name "jitpack.io"
+        url "https://jitpack.io"
     }
 }
 dependencies {
-    compile 'org.spongepowered:spongeapi:6.+'
-    compile 'com.github.codeHusky:HuskyUI-Plugin:v0.3.1'
-    shadow 'redis.clients:jedis:2.9.0'
-    shadow 'org.apache.commons:commons-pool2:2.4.2'
-    shadow 'org.mongodb:mongodb-driver:3.4.2'
+    compile "org.spongepowered:spongeapi:6.+"
+    compile "com.github.codeHusky:HuskyUI-Plugin:v0.3.1"
+    shadow "redis.clients:jedis:2.9.0"
+    shadow "org.apache.commons:commons-pool2:2.4.2"
+    shadow "org.mongodb:mongodb-driver:3.4.2"
 }
 
 configurations {
@@ -35,26 +41,30 @@ configurations {
 
 sponge.plugin.id = pluginId
 
+blossom {
+    def mainClass = '/src/main/java/com/kookykraftmc/market/Market.java'
+
+    replaceToken '@VERSION@', version, mainClass
+}
+
 shadowJar {
 
     configurations = [project.configurations.shadow]
     dependencies {
-        include dependency('redis.clients:jedis')
-        include dependency('org.apache.commons:commons-pool2')
-        include dependency('org.mongodb:mongodb-driver')
-        include dependency('org.mongodb:mongodb-driver-core')
-        include dependency('org.mongodb:bson')
+        include dependency("redis.clients:jedis")
+        include dependency("org.apache.commons:commons-pool2")
+        include dependency("org.mongodb:mongodb-driver")
+        include dependency("org.mongodb:mongodb-driver-core")
+        include dependency("org.mongodb:bson")
     }
 
-    relocate 'org.apache', 'com.kookykraftmc.relocate.org.apache'
-    relocate 'redis.clients', 'com.kookykraftmc.relocate.redis.clients'
-    relocate 'com.mongodb', 'com.kookykraftmc.relocate.com.mongodb'
-    relocate 'org.bson', 'com.kookykraftmc.relocate.org.bson'
+    relocate "org.apache", "com.kookykraftmc.relocate.org.apache"
+    relocate "redis.clients", "com.kookykraftmc.relocate.redis.clients"
+    relocate "com.mongodb", "com.kookykraftmc.relocate.com.mongodb"
+    relocate "org.bson", "com.kookykraftmc.relocate.org.bson"
 
-    archiveName = 'Market-0.2.4.jar'
+    archiveName = "Market-" + version + ".jar"
 }
 
 build.dependsOn(shadowJar)
 jar.enabled = false
-
-
