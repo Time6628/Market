@@ -221,7 +221,7 @@ public class MongoDBDataStore implements MarketDataStore {
                 if (market.matchItemStacks(listingStack, itemStack)) {
                     int stock = listing.getInteger("Stock");
                     int quan = itemStack.getQuantity() + stock;
-                    listing.put("Stock", stock);
+                    listing.put("Stock", quan);
                     client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).replaceOne(Filters.eq("ID", id), listing);
                     return true;
                 } else return false;

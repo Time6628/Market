@@ -7,9 +7,6 @@ import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
 @ConfigSerializable
 public class MarketConfig {
 
-    @Setting(value = "Version", comment = "Do not change this.")
-    public double version = 0.2;
-
     @Setting(value = "Server", comment = "Name of the server to be used when storing data.")
     public String server = "TEST";
 
