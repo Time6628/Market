@@ -9,7 +9,7 @@ import org.spongepowered.api.service.pagination.PaginationList;
 import java.util.List;
 import java.util.UUID;
 
-public interface DataStore {
+public interface MarketDataStore {
 
     void updateUUIDCache(String uuid, String name);
 

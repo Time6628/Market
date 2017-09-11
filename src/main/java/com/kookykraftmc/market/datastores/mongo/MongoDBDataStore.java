@@ -3,8 +3,8 @@ package com.kookykraftmc.market.datastores.mongo;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.config.MarketConfig;
-import com.kookykraftmc.market.datastores.DataStore;
 import com.kookykraftmc.market.datastores.Listing;
+import com.kookykraftmc.market.datastores.MarketDataStore;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
@@ -28,7 +28,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Consumer;
 
-public class MongoDBDataStore implements DataStore {
+public class MongoDBDataStore implements MarketDataStore {
 
     private final Market market = Market.instance;
     private final MongoClient mongoClient;

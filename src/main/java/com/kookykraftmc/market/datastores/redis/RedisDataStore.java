@@ -4,8 +4,8 @@ import com.google.common.collect.Lists;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.config.MarketConfig;
-import com.kookykraftmc.market.datastores.DataStore;
 import com.kookykraftmc.market.datastores.Listing;
+import com.kookykraftmc.market.datastores.MarketDataStore;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
@@ -27,7 +27,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class RedisDataStore implements DataStore {
+public class RedisDataStore implements MarketDataStore {
 
     private final Market plugin = Market.instance;
     private final JedisPool jedisPool;

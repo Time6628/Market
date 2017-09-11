@@ -20,7 +20,6 @@ import org.spongepowered.api.Game;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
-import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.data.persistence.DataTranslators;
 import org.spongepowered.api.entity.living.player.Player;
@@ -72,7 +71,7 @@ public class Market {
 
     public NamedCause marketCause;
 
-    private DataStore dataStore;
+    private MarketDataStore dataStore;
 
     private MarketConfig cfg;
     private Texts texts;
@@ -99,6 +98,8 @@ public class Market {
             getLogger().info("MongoDB enabled.");
             this.dataStore = new MongoDBDataStore(cfg.mongo);
         }
+
+        game.getServiceManager().setProvider(this, MarketDataStore.class, dataStore);
 
         CommandSpec createMarketCmd = CommandSpec.builder()
                 .executor(new CreateCommand())
@@ -295,7 +296,7 @@ public class Market {
         return game.getScheduler();
     }
 
-    public DataStore getDataStore() {
+    public MarketDataStore getDataStore() {
         return dataStore;
     }
 
