@@ -37,7 +37,7 @@ public class RedisDataStore implements MarketDataStore {
     private RedisPubSub sub;
     private List<String> blacklistedItems;
 
-    public RedisDataStore(MarketConfig.RedisDataStore config) {
+    public RedisDataStore(MarketConfig.RedisDataStoreConfig config) {
         this.redisPort = config.port;
         this.redisPass = config.password;
         this.redisHost = config.host;

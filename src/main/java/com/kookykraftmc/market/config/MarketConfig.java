@@ -3,6 +3,7 @@ package com.kookykraftmc.market.config;
 
 import ninja.leaping.configurate.objectmapping.Setting;
 import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
+import org.spongepowered.api.scheduler.SynchronousExecutor;
 
 @ConfigSerializable
 public class MarketConfig {
@@ -14,17 +15,17 @@ public class MarketConfig {
     public String dataStore = "redis";
 
     @Setting("Redis")
-    public RedisDataStore redis = new RedisDataStore();
+    public RedisDataStoreConfig redis = new RedisDataStoreConfig();
 
     @Setting("MongoDB")
-    public MongoDataStore mongo = new MongoDataStore();
+    public MongoDataStoreConfig mongo = new MongoDataStoreConfig();
 
     @Setting(value = "Chest-Is-Default", comment = "Should the chest GUI be the default gui instead of the chat gui.")
     public boolean chestDefault = false;
 
 
     @ConfigSerializable
-    public static class RedisDataStore {
+    public static class RedisDataStoreConfig {
 
         @Setting("Host")
         public String host = "localhost";
@@ -47,7 +48,7 @@ public class MarketConfig {
     }
 
     @ConfigSerializable
-    public static class MongoDataStore {
+    public static class MongoDataStoreConfig {
 
         @Setting("Host")
         public String host = "localhost";
@@ -63,5 +64,12 @@ public class MarketConfig {
 
         @Setting("DataBase")
         public String database = "database";
+    }
+
+    @ConfigSerializable
+    public static class DynamoDataStoreConfig {
+
+        @Setting("Region")
+        public String region = "us-east-1";
     }
 }

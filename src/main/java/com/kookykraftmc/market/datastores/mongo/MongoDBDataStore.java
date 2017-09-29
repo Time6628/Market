@@ -34,7 +34,7 @@ public class MongoDBDataStore implements MarketDataStore {
     private final MongoClient mongoClient;
     private final String databaseName;
 
-    public MongoDBDataStore(MarketConfig.MongoDataStore config) {
+    public MongoDBDataStore(MarketConfig.MongoDataStoreConfig config) {
         MongoCredential cred = MongoCredential.createCredential(config.username, config.database, config.password.toCharArray());
         mongoClient = new MongoClient(new ServerAddress(config.host, config.port), Collections.singletonList(cred));
         databaseName = config.database;
