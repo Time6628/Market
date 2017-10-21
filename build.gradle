@@ -58,6 +58,11 @@ shadowJar {
         include dependency("org.mongodb:mongodb-driver-core")
         include dependency("org.mongodb:bson")
         include dependency("com.amazonaws:aws-java-sdk-dynamodb")
+        include dependency("com.amazonaws:aws-java-sdk-core")
+        include dependency("com.amazonaws:aws-java-sdk-kms")
+        include dependency("com.amazonaws:aws-java-sdk-s3")
+        include dependency("com.amazonaws:jmespath-java")
+        include dependency("commons-logging:commons-logging")
     }
 
     relocate "org.apache", "com.kookykraftmc.relocate.org.apache"
@@ -65,6 +70,7 @@ shadowJar {
     relocate "com.mongodb", "com.kookykraftmc.relocate.com.mongodb"
     relocate "org.bson", "com.kookykraftmc.relocate.org.bson"
     relocate "com.amazonaws", "com.kookykraftmc.relocate.com.amazonaws"
+    relocate "org.apache.commons.logging", "com.kookykraftmc.reloate.org.apache"
 
     archiveName = "Market-" + version + ".jar"
 }

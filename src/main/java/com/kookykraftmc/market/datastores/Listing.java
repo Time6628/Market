@@ -1,7 +1,9 @@
 package com.kookykraftmc.market.datastores;
 
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.config.Texts;
+import com.kookykraftmc.market.datastores.dynamodb.DynamoDBListing;
 import org.bson.Document;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
@@ -18,6 +20,7 @@ public class Listing {
     private final UUID seller;
     private final String sellerName;
     private final String id;
+    private final int stock;
     private final Map<String, ?> source;
 
     public Listing(Map<String, String> r, String id, String sellerName) {
@@ -26,6 +29,7 @@ public class Listing {
         this.price = Integer.parseInt(r.get("Price"));
         this.quantity = Integer.parseInt(r.get("Quantity"));
         this.seller = UUID.fromString(r.get("Seller"));
+        this.stock = Integer.parseInt(r.get("Stock"));
         this.id = id;
         this.sellerName = sellerName;
         this.source = r;
@@ -39,8 +43,21 @@ public class Listing {
         this.quantity = doc.getInteger("Quantity");
         this.seller = UUID.fromString(doc.getString("Seller"));
         this.id = String.valueOf(doc.getInteger("ID"));
+        this.stock = doc.getInteger("Stock");
         this.sellerName = sellerName;
         this.source = doc;
+    }
+
+    public Listing(DynamoDBListing listing, String sellerName) {
+        Optional<ItemStack> is = Market.instance.deserializeItemStack(listing.getItemStack());
+        this.itemStack = is.orElse(null);
+        this.price = listing.getPrice();
+        this.quantity = listing.getQuantity();
+        this.seller = UUID.fromString(listing.getSeller());
+        this.id = listing.getID();
+        this.stock = listing.getStock();
+        this.sellerName = sellerName;
+        this.source = (Map<String, ?>) listing;
     }
 
     public Text getListingsText() {
@@ -93,5 +110,9 @@ public class Listing {
 
     public String getSellerName() {
         return sellerName;
+    }
+
+    public int getStock() {
+        return stock;
     }
 }

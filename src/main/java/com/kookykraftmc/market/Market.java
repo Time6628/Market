@@ -9,6 +9,7 @@ import com.kookykraftmc.market.config.ConfigLoader;
 import com.kookykraftmc.market.config.MarketConfig;
 import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.datastores.*;
+import com.kookykraftmc.market.datastores.dynamodb.DynamoDBDataStore;
 import com.kookykraftmc.market.datastores.mongo.MongoDBDataStore;
 import com.kookykraftmc.market.datastores.redis.RedisDataStore;
 import com.kookykraftmc.market.datastores.redis.RedisKeys;
@@ -97,6 +98,9 @@ public class Market {
         } else if (cfg.dataStore.equals("mongo")) {
             getLogger().info("MongoDB enabled.");
             this.dataStore = new MongoDBDataStore(cfg.mongo);
+        } else if (cfg.dataStore.equals("dynamo")) {
+            getLogger().info("DynamoDB enabled.");
+            this.dataStore = new DynamoDBDataStore(cfg.dynamodb);
         }
 
         game.getServiceManager().setProvider(this, MarketDataStore.class, dataStore);

@@ -1,9 +1,7 @@
 package com.kookykraftmc.market.config;
 
-
 import ninja.leaping.configurate.objectmapping.Setting;
 import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
-import org.spongepowered.api.scheduler.SynchronousExecutor;
 
 @ConfigSerializable
 public class MarketConfig {
@@ -19,6 +17,9 @@ public class MarketConfig {
 
     @Setting("MongoDB")
     public MongoDataStoreConfig mongo = new MongoDataStoreConfig();
+
+    @Setting("DynamoDB")
+    public DynamoDataStoreConfig dynamodb = new DynamoDataStoreConfig();
 
     @Setting(value = "Chest-Is-Default", comment = "Should the chest GUI be the default gui instead of the chat gui.")
     public boolean chestDefault = false;
