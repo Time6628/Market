@@ -15,14 +15,18 @@ import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.datastores.Listing;
 import com.kookykraftmc.market.datastores.MarketDataStore;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -145,7 +149,6 @@ public class DynamoDBDataStore implements MarketDataStore {
     public PaginationList getListing(String id) {
         DynamoDBScanExpression dbse = new DynamoDBScanExpression().withFilterExpression("ID = :id").withExpressionAttributeValues(Collections.singletonMap(":id", new AttributeValue().withS(id)));
         PaginatedScanList<DynamoDBListing> listing = mapper.scan(DynamoDBListing.class, dbse);
-        Listing l = new Listing(listing.get(0), getNameFromUUIDCache(listing.get(0).getSeller()));
         List<Text> texts = new ArrayList<>();
         listing.get(0).getValues().forEach((key, value) -> {
             switch (key) {
@@ -181,12 +184,51 @@ public class DynamoDBDataStore implements MarketDataStore {
 
     @Override
     public boolean addStock(ItemStack itemStack, String id, UUID uuid) {
-        return false;
+        DynamoDBScanExpression dbse = new DynamoDBScanExpression().withFilterExpression("ID = :id").withExpressionAttributeValues(Collections.singletonMap(":id", new AttributeValue().withS(id)));
+        DynamoDBListing listing = mapper.scan(DynamoDBListing.class, dbse).get(0);
+        if (listing == null) return false;
+        else if (!listing.getSeller().equals(uuid.toString())) return false;
+        else {
+            ItemStack listingStack = market.deserializeItemStack(listing.getItemStack()).get();
+            if (market.matchItemStacks(listingStack, itemStack)) {
+                int stock = listing.getStock();
+                int quan = itemStack.getQuantity() + stock;
+                listing.setStock(quan);
+                mapper.save(listing);
+                return true;
+            } else return false;
+        }
     }
 
     @Override
     public ItemStack purchase(UniqueAccount uniqueAccount, String id) {
-        return null;
+        DynamoDBScanExpression dbse = new DynamoDBScanExpression().withFilterExpression("ID = :id").withExpressionAttributeValues(Collections.singletonMap(":id", new AttributeValue().withS(id)));
+        DynamoDBListing listing = mapper.scan(DynamoDBListing.class, dbse).get(0);
+        if (listing != null) {
+            TransactionResult tr = uniqueAccount.transfer(market.getEconomyService().getOrCreateAccount(listing.getSeller()).get(), market.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(listing.getPrice()), Cause.of(market.marketCause));
+            if (tr.getResult().equals(ResultType.SUCCESS)) {
+                //get the itemstack
+                ItemStack is = market.deserializeItemStack(listing.getItemStack()).get();
+                //get the quantity per sale
+                int quant = listing.getQuantity();
+                //get the amount in stock
+                int inStock = listing.getStock();
+                //get the new quantity
+                int newQuant = inStock - quant;
+                //if the new quantity is less than the quantity to be sold, expire the listing
+                if (newQuant < quant) {
+                    mapper.delete(listing);
+                } else {
+                    listing.setStock(newQuant);
+                    mapper.save(listing);
+                }
+                ItemStack nis = is.copy();
+                nis.setQuantity(quant);
+                return nis;
+            } else {
+                return null;
+            }
+        } return null;
     }
 
     @Override
@@ -236,7 +278,7 @@ public class DynamoDBDataStore implements MarketDataStore {
 
     @Override
     public void updateUUIDCache(Player player) {
-
+        updateUUIDCache(player.getIdentifier(), player.getName());
     }
 
     @Override
@@ -247,7 +289,7 @@ public class DynamoDBDataStore implements MarketDataStore {
     private String getNameFromUUIDCache(String uuid) {
         Map<String, AttributeValue> val = new HashMap<>();
         val.put("UUID", new AttributeValue(uuid));
-        GetItemResult gir = null;
+        GetItemResult gir;
         try {
             gir = client.getItemAsync(new GetItemRequest("uuidcache", val)).get();
             return gir.getItem().get("UUID").getS();
