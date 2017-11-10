@@ -21,14 +21,13 @@ import org.spongepowered.api.data.persistence.DataTranslators;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.NamedCause;
+import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.ItemStackComparators;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.scheduler.Scheduler;
 import org.spongepowered.api.service.economy.EconomyService;
@@ -78,7 +77,7 @@ public class Market {
     private JedisPool jedisPool;
     private RedisPubSub sub;
 
-    private NamedCause marketCause;
+    private Cause marketCause;
     private List<String> blacklistedItems;
 
     @Listener
@@ -123,7 +122,7 @@ public class Market {
     @Listener
     public void onInit(GameInitializationEvent event) {
         instance = this;
-        marketCause = NamedCause.of("Market", this);
+        marketCause = Cause.builder().append(this).build(EventContext.builder().build());
 
         try (Jedis jedis = getJedis().getResource()) {
             blacklistedItems = Lists.newArrayList(jedis.hgetAll(RedisKeys.BLACKLIST).keySet());
@@ -554,7 +553,7 @@ public class Market {
         try (Jedis jedis = getJedis().getResource()) {
             if (!jedis.hexists(RedisKeys.FOR_SALE, id)) return null;
             else {
-                TransactionResult tr = uniqueAccount.transfer(getEconomyService().getOrCreateAccount(UUID.fromString(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Seller"))).get(), getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(Long.parseLong(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Price"))), Cause.of(marketCause));
+                TransactionResult tr = uniqueAccount.transfer(getEconomyService().getOrCreateAccount(UUID.fromString(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Seller"))).get(), getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(Long.parseLong(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Price"))), marketCause);
                 if (tr.getResult().equals(ResultType.SUCCESS)) {
                     //get the itemstack
                     ItemStack is = deserializeItemStack(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Item")).get();
