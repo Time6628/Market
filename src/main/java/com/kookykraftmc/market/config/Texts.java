@@ -24,6 +24,9 @@ public class Texts {
     @Setting("Not Enough Items")
     public static Text NOT_ENOUGH_ITEMS = Text.builder().color(TextColors.RED).append(Text.of("You cannot set the quantity to more than what you have in your hand.")).build();
 
+    @Setting("Too Enough Items")
+    public static Text TOO_ENOUGH_ITEMS = Text.builder().color(TextColors.RED).append(Text.of("The item in your hand is over the maximum normal amount, please separate them and add the extra items as stock using the /market addstock command.")).build();
+
     @Setting("Invalid Listing")
     public static Text INVALID_LISTING = Text.builder().color(TextColors.RED).append(Text.of("Unable to get listing.")).build();
 

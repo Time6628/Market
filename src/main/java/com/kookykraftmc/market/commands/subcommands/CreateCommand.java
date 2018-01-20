@@ -30,6 +30,7 @@ public class CreateCommand implements CommandExecutor {
             if (oquan.isPresent()) {
                 int quan = oquan.get();
                 if (quan > itemStack.getQuantity()) throw new CommandException(Texts.NOT_ENOUGH_ITEMS);
+                if (quan > itemStack.getMaxStackQuantity()) throw new CommandException(Texts.TOO_ENOUGH_ITEMS);
                 Optional<Integer> oprice = args.getOne(Text.of("price"));
                 oprice.ifPresent(integer -> {
                     int price = integer;
