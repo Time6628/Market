@@ -8,7 +8,6 @@ import com.kookykraftmc.market.datastores.Listing;
 import com.kookykraftmc.market.datastores.MarketDataStore;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -272,7 +271,7 @@ public class RedisDataStore implements MarketDataStore {
         try (Jedis jedis = getJedis().getResource()) {
             if (!jedis.hexists(RedisKeys.FOR_SALE, id)) return null;
             else {
-                TransactionResult tr = uniqueAccount.transfer(plugin.getEconomyService().getOrCreateAccount(UUID.fromString(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Seller"))).get(), plugin.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(Long.parseLong(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Price"))), Cause.of(plugin.marketCause));
+                TransactionResult tr = uniqueAccount.transfer(plugin.getEconomyService().getOrCreateAccount(UUID.fromString(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Seller"))).get(), plugin.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(Long.parseLong(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Price"))), plugin.marketCause);
                 if (tr.getResult().equals(ResultType.SUCCESS)) {
                     //get the itemstack
                     ItemStack is = plugin.deserializeItemStack(jedis.hget(RedisKeys.MARKET_ITEM_KEY(id), "Item")).get();

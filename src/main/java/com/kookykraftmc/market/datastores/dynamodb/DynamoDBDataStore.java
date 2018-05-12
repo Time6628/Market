@@ -205,7 +205,7 @@ public class DynamoDBDataStore implements MarketDataStore {
         DynamoDBScanExpression dbse = new DynamoDBScanExpression().withFilterExpression("ID = :id").withExpressionAttributeValues(Collections.singletonMap(":id", new AttributeValue().withS(id)));
         DynamoDBListing listing = mapper.scan(DynamoDBListing.class, dbse).get(0);
         if (listing != null) {
-            TransactionResult tr = uniqueAccount.transfer(market.getEconomyService().getOrCreateAccount(listing.getSeller()).get(), market.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(listing.getPrice()), Cause.of(market.marketCause));
+            TransactionResult tr = uniqueAccount.transfer(market.getEconomyService().getOrCreateAccount(listing.getSeller()).get(), market.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(listing.getPrice()), market.marketCause);
             if (tr.getResult().equals(ResultType.SUCCESS)) {
                 //get the itemstack
                 ItemStack is = market.deserializeItemStack(listing.getItemStack()).get();

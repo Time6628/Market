@@ -25,7 +25,8 @@ import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.data.persistence.DataTranslators;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.cause.NamedCause;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
@@ -70,7 +71,7 @@ public class Market {
 
     private String serverName;
 
-    public NamedCause marketCause;
+    public Cause marketCause;
 
     private MarketDataStore dataStore;
 
@@ -88,7 +89,7 @@ public class Market {
     @Listener
     public void onInit(GameInitializationEvent event) {
         instance = this;
-        marketCause = NamedCause.of("Market", this);
+        marketCause = Cause.builder().append(this).build(EventContext.builder().build());
         serverName = cfg.server;
 
         if (cfg.dataStore.equals("redis")) {

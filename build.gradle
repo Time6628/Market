@@ -28,7 +28,7 @@ repositories {
     }
 }
 dependencies {
-    compile "org.spongepowered:spongeapi:6.+"
+    compile "org.spongepowered:spongeapi:7.+"
     compile "com.github.codeHusky:HuskyUI-Plugin:v0.3.1"
     shadow "redis.clients:jedis:2.9.0"
     shadow "org.apache.commons:commons-pool2:2.4.2"

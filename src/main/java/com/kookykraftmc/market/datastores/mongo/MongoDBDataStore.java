@@ -235,7 +235,7 @@ public class MongoDBDataStore implements MarketDataStore {
             Document listing = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).find(Filters.eq("ID", id)).first();
             if (listing == null) return null;
             else {
-                TransactionResult tr = uniqueAccount.transfer(market.getEconomyService().getOrCreateAccount(listing.getString(listing.getString("Seller"))).get(), market.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(listing.getLong("Price")), Cause.of(market.marketCause));
+                TransactionResult tr = uniqueAccount.transfer(market.getEconomyService().getOrCreateAccount(listing.getString(listing.getString("Seller"))).get(), market.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(listing.getLong("Price")), market.marketCause);
                 if (tr.getResult().equals(ResultType.SUCCESS)) {
                     //get the itemstack
                     ItemStack is = market.deserializeItemStack(listing.getString("Item")).get();
