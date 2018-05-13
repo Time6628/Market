@@ -43,7 +43,7 @@ public class CreateCommand implements CommandExecutor {
                         Optional<Listing> savedListing = market.addListing(listing);
                         if (!savedListing.isPresent()) player.sendMessage(Texts.COULD_NOT_MAKE_LISTING);
                         else {
-                            market.getListing(listing.getId()).sendTo(src);
+                            market.getListing(savedListing.get().getId()).sendTo(src);
                             player.setItemInHand(HandTypes.MAIN_HAND, null);
                         }
                     }

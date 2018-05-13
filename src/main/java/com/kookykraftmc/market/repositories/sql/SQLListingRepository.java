@@ -88,14 +88,14 @@ public class SQLListingRepository extends Repository<String, Listing> implements
 
     @Override
     protected PreparedStatement createGetPrepareStatement(Connection conn, String listingId) throws SQLException {
-        String sql = "SELECT * FROM LISTING WHERE ID = ?";
+        String sql = "SELECT * FROM LISTINGS WHERE ID = ?";
         PreparedStatement stmt = conn.prepareStatement(sql);
         stmt.setString(1, listingId);
         return stmt;
     }
 
     protected PreparedStatement createSelectBySellerPrepareStatement(Connection conn, UUID sellerId) throws SQLException {
-        String sql = "SELECT * FROM LISTING WHERE SELLER = ?";
+        String sql = "SELECT * FROM LISTINGS WHERE SELLER = ?";
         PreparedStatement stmt = conn.prepareStatement(sql);
         stmt.setString(1, sellerId.toString());
 
@@ -104,7 +104,7 @@ public class SQLListingRepository extends Repository<String, Listing> implements
 
     @Override
     protected PreparedStatement createGetAllPrepareStatement(Connection conn) throws SQLException {
-        String sql = "SELECT *  FROM LISTING";
+        String sql = "SELECT *  FROM LISTINGS";
         PreparedStatement stmt = conn.prepareStatement(sql);
         return stmt;
     }
@@ -116,7 +116,7 @@ public class SQLListingRepository extends Repository<String, Listing> implements
 
     @Override
     protected PreparedStatement createDeletePrepareStatement(Connection conn, String id) throws SQLException {
-        String sql = "DELETE FROM LISTING WHERE ID = ?";
+        String sql = "DELETE FROM LISTINGS WHERE ID = ?";
         PreparedStatement stmt = conn.prepareStatement(sql);
         stmt.setString(1, id);
         return stmt;
@@ -142,8 +142,8 @@ public class SQLListingRepository extends Repository<String, Listing> implements
                 "STOCK INT ," +
                 "PRICE INT ," +
                 "QTY INT ," +
-                "ITEM CLOB)," +
-                "INDEX SELLER_IND (SELLER);";
+                "ITEM CLOB);" +
+                "CREATE INDEX IF NOT EXISTS SELLER_IND ON LISTINGS (SELLER);";
         return connection.prepareStatement(sql);
     }
 

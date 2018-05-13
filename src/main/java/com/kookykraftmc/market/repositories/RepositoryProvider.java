@@ -35,6 +35,7 @@ public class RepositoryProvider {
     @Inject
     private ConfigLoader configLoader;
 
+    @Inject
     public void init() {
         if (configLoader.loadConfig()){
             MarketConfig cfg = configLoader.getMarketConfig();

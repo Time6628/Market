@@ -9,6 +9,7 @@ import com.kookykraftmc.market.repositories.BlackListRepository;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -56,7 +57,7 @@ public class SQLBlackListRepository extends Repository<ItemStackId, BlackListIte
 
     @Override
     protected PreparedStatement createTablePrepareStatement(Connection conn) throws SQLException {
-        String sql = "CREATE TABLE IF NOT EXISTS BLACKLIST(ID VARCHAR(100) PRIMARY KEY; ";
+        String sql = "CREATE TABLE IF NOT EXISTS BLACKLIST(ID VARCHAR(100) PRIMARY KEY); ";
         PreparedStatement stmt = conn.prepareStatement(sql);
         return stmt;
     }

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public abstract class Repository<ID, T> {
+public abstract class Repository<ID, T extends Identifiable> {
     private String dbUri;
 
     @Inject
@@ -33,7 +33,21 @@ public abstract class Repository<ID, T> {
     public Optional<T> insert(T t) {
         try (Connection conn = getDataSource().getConnection()) {
             PreparedStatement stmt = createInsertPrepareStatement(conn, t);
-            stmt.executeUpdate();
+
+            int affectedRows = stmt.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new SQLException("Creating user failed, no rows affected.");
+            }
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    t.setId(generatedKeys.getObject(1));
+                }
+                else {
+                    throw new SQLException("Creating user failed, no ID obtained.");
+                }
+            }
             return Optional.ofNullable(t);
         } catch (SQLException e) {
             logger.error("Unable to SQL addListing", e);

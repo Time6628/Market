@@ -28,6 +28,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -46,7 +47,7 @@ public class MarketService {
     @Inject
     private UuidCacheService uuidCache;
 
-    private List<BlackListItem> blacklistedItems;
+    private List<BlackListItem> blacklistedItems = newArrayList();
 
     @Inject
     public MarketService(RepositoryProvider repositoryProvider, Market marketPlugin) {
@@ -104,7 +105,7 @@ public class MarketService {
      * @param staff      true if the player is staff
      * @return A list of {@link Listing}s.
      */
-    public List<Listing> getListings(UUID playerUUID, boolean staff) {
+    public List<Listing> getListings(@Nullable UUID playerUUID, boolean staff) {
         return this.listingRepository.all()
                 .filter(listing -> listing.getStock() > listing.getQuantityPerSale() || staff || listing.getSeller().equals(playerUUID))
                 .collect(Collectors.toList());

@@ -1,12 +1,13 @@
 package com.kookykraftmc.market.model;
 
+import com.kookykraftmc.market.repositories.sql.Identifiable;
 import org.spongepowered.api.item.inventory.ItemStack;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class Listing {
+public class Listing implements Identifiable {
 
     private String id;
     private ItemStack itemStack;
@@ -32,24 +33,17 @@ public class Listing {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public <ID> void setId(ID id) {
+        this.id = id.toString();
     }
 
     public ItemStack getItemStack() {
         return itemStack;
     }
 
-    public void setItemStack(ItemStack itemStack) {
-        this.itemStack = itemStack;
-    }
 
     public UUID getSeller() {
         return seller;
-    }
-
-    public void setSeller(UUID seller) {
-        this.seller = seller;
     }
 
     public int getStock() {
@@ -70,10 +64,6 @@ public class Listing {
 
     public int getQuantityPerSale() {
         return quantityPerSale;
-    }
-
-    public void setQuantityPerSale(int quantityPerSale) {
-        this.quantityPerSale = quantityPerSale;
     }
 
     public Map<String, ?> toMap() {

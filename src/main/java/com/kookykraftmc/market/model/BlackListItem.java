@@ -1,8 +1,10 @@
 package com.kookykraftmc.market.model;
 
+import com.kookykraftmc.market.repositories.sql.Identifiable;
+
 import java.util.Objects;
 
-public class BlackListItem {
+public class BlackListItem implements Identifiable {
 
     private ItemStackId id;
 
@@ -12,6 +14,14 @@ public class BlackListItem {
 
     public ItemStackId getId() {
         return id;
+    }
+
+    public <ID> void setId(ID itemStackId) {
+        if(itemStackId instanceof ItemStackId) {
+            this.id = (ItemStackId) itemStackId;
+        } else {
+            this.id = new ItemStackId(itemStackId.toString());
+        }
     }
 
     @Override
