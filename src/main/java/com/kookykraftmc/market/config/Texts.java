@@ -28,7 +28,7 @@ public class Texts {
     public static Text TOO_ENOUGH_ITEMS = Text.builder().color(TextColors.RED).append(Text.of("The item in your hand is over the maximum normal amount, please separate them and add the extra items as stock using the /market addstock command.")).build();
 
     @Setting("Invalid Listing")
-    public static Text INVALID_LISTING = Text.builder().color(TextColors.RED).append(Text.of("Unable to get listing.")).build();
+    public static Text INVALID_LISTING = Text.builder().color(TextColors.RED).append(Text.of("Unable to getById listing.")).build();
 
     @Setting("Inventory Full")
     public static Text INV_FULL = Text.builder().color(TextColors.RED).append(Text.of("Unable to add the item to your inventory. Please make sure it is not full. Will try to add the item to your inventory again in 30 seconds.")).build();

@@ -3,26 +3,22 @@ package com.kookykraftmc.market.repositories.sql;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.kookykraftmc.market.config.MarketConfig;
-import com.kookykraftmc.market.model.ItemStackId;
 import com.kookykraftmc.market.model.Listing;
 import com.kookykraftmc.market.repositories.ListingRepository;
 import com.kookykraftmc.market.service.ItemSerializer;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.service.sql.SqlService;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 @Singleton
-public class SQLListingRepository implements ListingRepository<MarketConfig.SqlDataStoreConfig> {
+public class SQLListingRepository extends Repository<String, Listing> implements ListingRepository<MarketConfig.SqlDataStoreConfig> {
 
     @Inject
     private Logger logger;
@@ -53,38 +49,77 @@ public class SQLListingRepository implements ListingRepository<MarketConfig.SqlD
     }
 
     @Override
-    public Listing insert(Listing listing) {
-        return null;
+    public Optional<Listing> addListing(Listing listing) {
+        return super.insert(listing);
     }
 
     @Override
     public Stream<Listing> all() {
-        return null;
-    }
-
-    @Override
-    public boolean exists(ItemStackId itemStackId, UUID seller) {
-        return false;
+        return selectAll().stream().map(this::toListing);
     }
 
     @Override
     public Stream<Listing> findAllBySellerId(UUID sellerId) {
-        return null;
+        try (Connection conn = getDataSource().getConnection()) {
+            PreparedStatement stmt = createSelectBySellerPrepareStatement(conn, sellerId);
+            ResultSet results = stmt.executeQuery();
+            return super.toMap(results).stream().map(this::toListing);
+        } catch (SQLException e) {
+            logger.error("Unable to SQL select", e);
+            return Stream.empty();
+        }
     }
 
     @Override
-    public Stream<Listing> findAllByItemType(ItemType itemType) {
-        return null;
+    public Optional<Listing> getById(String id) {
+        return super.get(id).map(this::toListing);
+    }
+
+    private Listing toListing(Map<String, String> listingMap) {
+        return new Listing(
+                listingMap.get("ID"),
+                itemSerializer.deserializeItemStack(listingMap.get("ITEM")).get(),
+                UUID.fromString(listingMap.get("SELLER")),
+                Integer.parseInt(listingMap.get("STOCK")),
+                Integer.parseInt(listingMap.get("PRICE")),
+                Integer.parseInt(listingMap.get("QTY"))
+        );
     }
 
     @Override
-    public Optional<Listing> get(String id) {
-        return Optional.empty();
+    protected PreparedStatement createGetPrepareStatement(Connection conn, String listingId) throws SQLException {
+        String sql = "SELECT * FROM LISTING WHERE ID = ?";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setString(1, listingId);
+        return stmt;
+    }
+
+    protected PreparedStatement createSelectBySellerPrepareStatement(Connection conn, UUID sellerId) throws SQLException {
+        String sql = "SELECT * FROM LISTING WHERE SELLER = ?";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setString(1, sellerId.toString());
+
+        return stmt;
+    }
+
+    @Override
+    protected PreparedStatement createGetAllPrepareStatement(Connection conn) throws SQLException {
+        String sql = "SELECT *  FROM LISTING";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        return stmt;
     }
 
     @Override
     public void deleteById(String listingId) {
+        super.delete(listingId);
+    }
 
+    @Override
+    protected PreparedStatement createDeletePrepareStatement(Connection conn, String id) throws SQLException {
+        String sql = "DELETE FROM LISTING WHERE ID = ?";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setString(1, id);
+        return stmt;
     }
 
 
@@ -101,17 +136,14 @@ public class SQLListingRepository implements ListingRepository<MarketConfig.SqlD
         return stmt;
     }
 
-    protected PreparedStatement createGetPrepareStatement(Connection conn, Integer id) throws SQLException {
-        return null;
-    }
-
     protected PreparedStatement createTablePrepareStatement(Connection connection) throws SQLException {
         String sql = "CREATE TABLE IF NOT EXISTS LISTINGS(ID bigint auto_increment PRIMARY KEY, " +
                 "SELLER VARCHAR(100) ," +
                 "STOCK INT ," +
                 "PRICE INT ," +
                 "QTY INT ," +
-                "ITEM CLOB);";
+                "ITEM CLOB)," +
+                "INDEX SELLER_IND (SELLER);";
         return connection.prepareStatement(sql);
     }
 

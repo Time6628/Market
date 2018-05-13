@@ -84,7 +84,7 @@ public class MarketService {
         if (exists(listing))
             return Optional.empty();
 
-        return Optional.ofNullable(listingRepository.insert(listing));
+        return listingRepository.addListing(listing);
     }
 
     /**
@@ -126,7 +126,7 @@ public class MarketService {
      * @return The removed items.
      */
     public List<ItemStack> removeListing(String id, UUID uuid, boolean staff) {
-        return listingRepository.get(id)
+        return listingRepository.getById(id)
                 .filter(listing -> listing.getSeller().equals(uuid) || staff)
                 .map(listing -> {
                     int inStock = listing.getStock();
@@ -151,7 +151,7 @@ public class MarketService {
     }
 
     public PaginationList getListing(String id) {
-        Optional<Listing> listing = listingRepository.get(id);
+        Optional<Listing> listing = listingRepository.getById(id);
         return getPaginationService().builder()
                 .contents(
                         listing.map(l -> {
@@ -195,14 +195,14 @@ public class MarketService {
      * true if it added successfully.
      */
     public boolean addStock(ItemStack itemStack, String listingId, UUID playerUUID) {
-        return listingRepository.get(listingId)
+        return listingRepository.getById(listingId)
                 .filter(listing -> listing.getSeller().equals(playerUUID))
                 .filter(listing -> ItemStackId.from(itemStack).equals(ItemStackId.from(listing.getItemStack())))
                 .map(listing -> {
                     listing.setStock(listing.getStock() + itemStack.getQuantity());
 
                     listingRepository.deleteById(listing.getId());
-                    listingRepository.insert(listing);
+                    listingRepository.addListing(listing);
                     return true;
                 }).orElse(false);
     }
@@ -216,7 +216,7 @@ public class MarketService {
      * null if it could not purchase it.
      */
     public ItemStack purchase(UniqueAccount uniqueAccount, String id) {
-        return listingRepository.get(id)
+        return listingRepository.getById(id)
                 .map(listing -> {
                     TransactionResult tr = uniqueAccount.transfer(
                             getEconomyService().getOrCreateAccount(listing.getSeller()).get(),
@@ -224,18 +224,18 @@ public class MarketService {
                             BigDecimal.valueOf(listing.getPrice()),
                             this.marketCause);
                     if (tr.getResult().equals(ResultType.SUCCESS)) {
-                        //get the itemstack
+                        //getById the itemstack
                         ItemStack is = listing.getItemStack();
-                        //get the quantity per sale
+                        //getById the quantity per sale
                         int quant = listing.getQuantityPerSale();
-                        //get the amount in stock
+                        //getById the amount in stock
                         int inStock = listing.getStock();
-                        //get the new quantity
+                        //getById the new quantity
                         int newQuant = inStock - quant;
                         //if the new quantity is less than the quantity to be sold, expire the listing
                         listing.setStock(newQuant);
                         listingRepository.deleteById(listing.getId());
-                        listingRepository.insert(listing);
+                        listingRepository.addListing(listing);
                         ItemStack nis = is.copy();
                         nis.setQuantity(quant);
                         return nis;

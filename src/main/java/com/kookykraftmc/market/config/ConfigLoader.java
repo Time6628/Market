@@ -20,9 +20,6 @@ public class ConfigLoader {
     private Market market;
 
     @Inject
-    public GuiceObjectMapperFactory factory;
-
-    @Inject
     private Logger logger;
 
     private MarketConfig marketConfig;
@@ -44,7 +41,7 @@ public class ConfigLoader {
                 file.createNewFile();
             }
             ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setFile(file).build();
-            CommentedConfigurationNode config = loader.load(ConfigurationOptions.defaults().setObjectMapperFactory(factory).setShouldCopyDefaults(true));
+            CommentedConfigurationNode config = loader.load(ConfigurationOptions.defaults().setShouldCopyDefaults(true));
             marketConfig = config.getValue(TypeToken.of(MarketConfig.class), new MarketConfig());
             loader.save(config);
             return true;
@@ -61,7 +58,7 @@ public class ConfigLoader {
                 file.createNewFile();
             }
             ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setFile(file).build();
-            CommentedConfigurationNode config = loader.load(ConfigurationOptions.defaults().setObjectMapperFactory(factory).setShouldCopyDefaults(true));
+            CommentedConfigurationNode config = loader.load(ConfigurationOptions.defaults().setShouldCopyDefaults(true));
             texts = config.getValue(TypeToken.of(Texts.class), new Texts());
             loader.save(config);
             return true;

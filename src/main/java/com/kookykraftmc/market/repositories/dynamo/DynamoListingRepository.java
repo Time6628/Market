@@ -55,7 +55,7 @@ public class DynamoListingRepository implements ListingRepository<MarketConfig.D
 
 
     @Override
-    public Listing insert(Listing listing) {
+    public Optional<Listing> addListing(Listing listing) {
         try {
             DynamoDBListing dynamoDBListing = new DynamoDBListing();
             dynamoDBListing.setItemStack(itemSerializer.serializeItem(listing.getItemStack()));
@@ -66,10 +66,10 @@ public class DynamoListingRepository implements ListingRepository<MarketConfig.D
             mapper.save(listing);
 
             listing.setId(dynamoDBListing.getID());
-            return listing;
+            return Optional.ofNullable(listing);
         } catch (Exception e) {
             logger.error("Unable to save listing", e);
-            return listing;
+            return Optional.empty();
         }
     }
 
@@ -93,18 +93,18 @@ public class DynamoListingRepository implements ListingRepository<MarketConfig.D
     }
 
     @Override
-    public Optional<Listing> get(String listingId) {
-        return getById(listingId).stream().map(this::toListing).findFirst();
+    public Optional<Listing> getById(String listingId) {
+        return get(listingId).stream().map(this::toListing).findFirst();
     }
 
     @Override
     public void deleteById(String listingId) {
-        PaginatedScanList<DynamoDBListing> listing = getById(listingId);
+        PaginatedScanList<DynamoDBListing> listing = get(listingId);
 
         listing.forEach(mapper::delete);
     }
 
-    private PaginatedScanList<DynamoDBListing> getById(String listingId) {
+    private PaginatedScanList<DynamoDBListing> get(String listingId) {
         DynamoDBScanExpression dbse = new DynamoDBScanExpression()
                 .withFilterExpression("ID = :id")
                 .withExpressionAttributeValues(Collections.singletonMap(":id", new AttributeValue()

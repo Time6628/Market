@@ -12,7 +12,7 @@ public interface ListingRepository<CONFIG> {
 
     void init(CONFIG config);
 
-    Listing insert(Listing listing);
+    Optional<Listing> addListing(Listing listing);
 
     Stream<Listing> all();
 
@@ -44,7 +44,7 @@ public interface ListingRepository<CONFIG> {
         return all().filter(listing -> listing.getItemStack().getType().equals(itemType));
     }
 
-    Optional<Listing> get(String id);
+    Optional<Listing> getById(String id);
 
     void deleteById(String listingId);
 }

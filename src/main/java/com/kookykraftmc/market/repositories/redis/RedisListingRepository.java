@@ -29,7 +29,7 @@ public class RedisListingRepository implements ListingRepository<MarketConfig.Re
     }
 
     @Override
-    public Listing insert(Listing listing) {
+    public Optional<Listing> addListing(Listing listing) {
         try (Jedis jedis = jedisPool.getResource()) {
             if (!jedis.exists(LAST_MARKET_ID())) {
                 jedis.set(LAST_MARKET_ID(), String.valueOf(1));
@@ -49,7 +49,7 @@ public class RedisListingRepository implements ListingRepository<MarketConfig.Re
             jedis.incr(LAST_MARKET_ID());
 
             listing.setId(Integer.toString(id));
-            return listing;
+            return Optional.ofNullable(listing);
         }
     }
 
@@ -82,9 +82,9 @@ public class RedisListingRepository implements ListingRepository<MarketConfig.Re
 
 
     @Override
-    public Optional<Listing> get(String id) {
+    public Optional<Listing> getById(String id) {
         try (Jedis jedis = jedisPool.getResource()) {
-            //if the item is not for sale, do not get the listing
+            //if the item is not for sale, do not getById the listing
             if (!jedis.hexists(FOR_SALE(), id)) return Optional.empty();
             return Optional.of(toListing(jedis.hgetAll(MARKET_ITEM_KEY(id)), id));
         }

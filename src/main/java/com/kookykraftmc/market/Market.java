@@ -17,7 +17,6 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
@@ -42,24 +41,18 @@ public class Market {
     @Inject
     @ConfigDir(sharedRoot = false)
     public File configDir;
-    public Cause marketCause;
     @Inject
     private Logger logger;
     @Inject
     private Game game;
     @Inject
-    private ConfigLoader configLoader;
-    @Inject
     private MarketService marketService;
     @Inject
     private UuidCacheService uuidCacheService;
 
-    private Texts texts;
-
     @Listener
     public void onPreInit(GamePreInitializationEvent event) {
         logger.info("Loading config...");
-        if (configLoader.loadTexts()) texts = configLoader.getTexts();
     }
 
     @Listener

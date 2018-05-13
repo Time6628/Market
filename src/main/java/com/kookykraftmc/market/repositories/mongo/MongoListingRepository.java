@@ -59,7 +59,7 @@ public class MongoListingRepository implements ListingRepository<MarketConfig.Mo
     }
 
     @Override
-    public Listing insert(Listing listing) {
+    public Optional<Listing> addListing(Listing listing) {
         try (MongoClient client = getClient()) {
             int id = getLastID() + 1;
             Document doc = new Document();
@@ -73,7 +73,7 @@ public class MongoListingRepository implements ListingRepository<MarketConfig.Mo
             collection.insertOne(doc);
             setLastID(id);
             listing.setId(Integer.toString(id));
-            return listing;
+            return Optional.ofNullable(listing);
         }
     }
 
@@ -108,7 +108,7 @@ public class MongoListingRepository implements ListingRepository<MarketConfig.Mo
     }
 
     @Override
-    public Optional<Listing> get(String id) {
+    public Optional<Listing> getById(String id) {
         try (MongoClient client = getClient()) {
             FindIterable<Document> docs = client.getDatabase(databaseName).getCollection(marketListings)
                     .find(Filters.eq("ID", id));
