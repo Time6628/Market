@@ -6,16 +6,8 @@ import com.kookykraftmc.market.config.MarketConfig;
 import com.kookykraftmc.market.model.BlackListItem;
 import com.kookykraftmc.market.model.ItemStackId;
 import com.kookykraftmc.market.repositories.BlackListRepository;
-import com.kookykraftmc.market.service.ItemSerializer;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Filters;
-import org.bson.Document;
 import org.slf4j.Logger;
 
-import java.util.Collections;
 import java.util.stream.Stream;
 
 @Singleton
