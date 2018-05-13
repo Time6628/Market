@@ -6,7 +6,7 @@ import com.codehusky.huskyui.states.action.CommandAction;
 import com.codehusky.huskyui.states.element.ActionableElement;
 import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.model.Listing;
-import com.kookykraftmc.market.service.UuidCacheService;
+import com.kookykraftmc.market.service.UUIDCacheService;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -29,7 +29,7 @@ public class ListingUI {
         i.setQuantity(listing.getQuantityPerSale());
         List<Text> lore = new ArrayList<>();
         lore.add(Texts.guiListing.apply(listing.toMap()).build());
-        String playerName = Sponge.getServiceManager().provide(UuidCacheService.class).get().getName(listing.getSeller());
+        String playerName = Sponge.getServiceManager().provide(UUIDCacheService.class).get().getName(listing.getSeller());
         lore.add(Text.builder().color(TextColors.WHITE).append(Text.of("Seller: " + playerName)).build());
 
         i.offer(Keys.ITEM_LORE, lore);

@@ -5,10 +5,8 @@ import com.kookykraftmc.market.commands.MarketCommand;
 import com.kookykraftmc.market.commands.subcommands.*;
 import com.kookykraftmc.market.commands.subcommands.blacklist.BlacklistAddCommand;
 import com.kookykraftmc.market.commands.subcommands.blacklist.BlacklistRemoveCommand;
-import com.kookykraftmc.market.config.ConfigLoader;
-import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.service.MarketService;
-import com.kookykraftmc.market.service.UuidCacheService;
+import com.kookykraftmc.market.service.UUIDCacheService;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Sponge;
@@ -48,7 +46,7 @@ public class Market {
     @Inject
     private MarketService marketService;
     @Inject
-    private UuidCacheService uuidCacheService;
+    private UUIDCacheService uuidCacheService;
 
     @Listener
     public void onPreInit(GamePreInitializationEvent event) {
@@ -58,7 +56,7 @@ public class Market {
     @Listener
     public void onInit(GameInitializationEvent event) {
         game.getServiceManager().setProvider(this, MarketService.class, marketService);
-        game.getServiceManager().setProvider(this, UuidCacheService.class, uuidCacheService);
+        game.getServiceManager().setProvider(this, UUIDCacheService.class, uuidCacheService);
 
         CommandSpec createMarketCmd = CommandSpec.builder()
                 .executor(new CreateCommand())

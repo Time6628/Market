@@ -45,7 +45,7 @@ public class MarketService {
     private ConfigLoader configLoader;
 
     @Inject
-    private UuidCacheService uuidCache;
+    private UUIDCacheService uuidCache;
 
     private List<BlackListItem> blacklistedItems = newArrayList();
 
