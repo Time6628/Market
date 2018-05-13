@@ -21,7 +21,7 @@ public class MarketConfig {
     public DynamoDataStoreConfig dynamodb = new DynamoDataStoreConfig();
 
     @Setting("Sql")
-    public SqlDataStoreConfig sqldb = new SqlDataStoreConfig();
+    public SQLDataStoreConfig sqldb = new SQLDataStoreConfig();
 
     @Setting(value = "Chest-Is-Default", comment = "Should the chest GUI be the default gui instead of the chat gui.")
     public boolean chestDefault = false;
@@ -71,9 +71,9 @@ public class MarketConfig {
     }
 
     @ConfigSerializable
-    public static class SqlDataStoreConfig {
+    public static class SQLDataStoreConfig {
 
-        @Setting("Region")
+        @Setting("DataBase")
         public String dbUri = "jdbc:h2:./market.db";
     }
 }

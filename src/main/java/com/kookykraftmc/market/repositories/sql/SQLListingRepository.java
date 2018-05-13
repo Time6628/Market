@@ -18,7 +18,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 @Singleton
-public class SQLListingRepository extends Repository<String, Listing> implements ListingRepository<MarketConfig.SqlDataStoreConfig> {
+public class SQLListingRepository extends Repository<String, Listing> implements ListingRepository<MarketConfig.SQLDataStoreConfig> {
 
     @Inject
     private Logger logger;
@@ -30,7 +30,7 @@ public class SQLListingRepository extends Repository<String, Listing> implements
 
 
     @Override
-    public void init(MarketConfig.SqlDataStoreConfig sqlDataStoreConfig) {
+    public void init(MarketConfig.SQLDataStoreConfig sqlDataStoreConfig) {
         this.dbUri = sqlDataStoreConfig.dbUri;
 
         try (Connection conn = getDataSource().getConnection()) {

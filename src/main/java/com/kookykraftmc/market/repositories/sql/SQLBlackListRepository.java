@@ -13,10 +13,10 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 @Singleton
-public class SQLBlackListRepository extends Repository<ItemStackId, BlackListItem> implements BlackListRepository<MarketConfig.SqlDataStoreConfig> {
+public class SQLBlackListRepository extends Repository<ItemStackId, BlackListItem> implements BlackListRepository<MarketConfig.SQLDataStoreConfig> {
 
     @Override
-    public void init(MarketConfig.SqlDataStoreConfig sqlDataStoreConfig) {
+    public void init(MarketConfig.SQLDataStoreConfig sqlDataStoreConfig) {
         super.init(sqlDataStoreConfig.dbUri);
     }
 
