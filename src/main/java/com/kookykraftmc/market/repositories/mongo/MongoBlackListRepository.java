@@ -13,6 +13,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
+import org.slf4j.Logger;
 
 import java.util.Collections;
 import java.util.stream.Stream;
@@ -20,15 +21,11 @@ import java.util.stream.Stream;
 @Singleton
 public class MongoBlackListRepository implements BlackListRepository<MarketConfig.MongoDataStoreConfig> {
     @Inject
-    private ItemSerializer itemSerializer;
-    private MongoClient mongoClient;
-    private String databaseName;
+    private Logger logger;
 
     @Override
-    public void init(MarketConfig.MongoDataStoreConfig config) {
-        MongoCredential cred = MongoCredential.createCredential(config.username, config.database, config.password.toCharArray());
-        mongoClient = new MongoClient(new ServerAddress(config.host, config.port), Collections.singletonList(cred));
-        databaseName = config.database;
+    public void init(MarketConfig.MongoDataStoreConfig dynamoDataStoreConfig) {
+        logger.error("Blacklist not implemented yet on MongoDB");
     }
 
     @Override

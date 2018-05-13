@@ -72,6 +72,6 @@ public class Listing implements Identifiable {
         map.put("Price", Integer.toString(this.price));
         map.put("Stock", Integer.toString(this.stock));
         map.put("Quantity", Integer.toString(this.quantityPerSale));
-        return null;
+        return map;
     }
 }
