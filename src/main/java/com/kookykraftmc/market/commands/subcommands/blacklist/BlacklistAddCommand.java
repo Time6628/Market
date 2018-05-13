@@ -1,7 +1,11 @@
 package com.kookykraftmc.market.commands.subcommands.blacklist;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.config.Texts;
+import com.kookykraftmc.market.service.MarketService;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -20,7 +24,7 @@ import java.util.Optional;
  * Created by TimeTheCat on 3/26/2017.
  */
 public class BlacklistAddCommand implements CommandExecutor {
-    private final Market pl = Market.instance;
+
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (!(src instanceof Player)) return CommandResult.empty();
@@ -33,8 +37,8 @@ public class BlacklistAddCommand implements CommandExecutor {
                 if (bs.isPresent()) {
                     id = bs.get().getId();
                 }
-            } else id = si.getItem().getId();
-            boolean s = pl.getDataStore().blacklistAddCmd(id);
+            } else id = si.getType().getId();
+            boolean s = Sponge.getServiceManager().provide(MarketService.class).get().addToBlackList(id);
             if (s) {
                 src.sendMessage(Texts.ADD_TO_BLACKLIST.apply(Collections.singletonMap("id", id)).build());
                 return CommandResult.success();

@@ -1,8 +1,9 @@
-package com.kookykraftmc.market.datastores;
+package com.kookykraftmc.market.ui;
 
 import com.codehusky.huskyui.StateContainer;
 import com.codehusky.huskyui.states.Page;
 import com.kookykraftmc.market.config.Texts;
+import com.kookykraftmc.market.model.Listing;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.type.DyeColors;
 import org.spongepowered.api.item.ItemTypes;

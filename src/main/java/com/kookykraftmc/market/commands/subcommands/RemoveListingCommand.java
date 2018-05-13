@@ -2,6 +2,8 @@ package com.kookykraftmc.market.commands.subcommands;
 
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.config.Texts;
+import com.kookykraftmc.market.service.MarketService;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -21,14 +23,13 @@ import java.util.Optional;
  * Created by TimeTheCat on 3/19/2017.
  */
 public class RemoveListingCommand implements CommandExecutor {
-    private final Market pl = Market.instance;
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
 
         Player player = (Player) src;
         Optional<String> oid = args.getOne(Text.of("id"));
         oid.ifPresent(s -> {
-            List<ItemStack> is = pl.getDataStore().removeListing(s, player.getUniqueId().toString(), player.hasPermission("market.command.staff.removelisting"));
+            List<ItemStack> is = Sponge.getServiceManager().provide(MarketService.class).get().removeListing(s, player.getUniqueId(), player.hasPermission("market.command.staff.removelisting"));
             if (is != null) {
                 for (ItemStack i : is) {
                     player.getInventory().query(Hotbar.class, GridInventory.class).offer(i);

@@ -2,6 +2,9 @@ package com.kookykraftmc.market.commands.subcommands;
 
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.config.Texts;
+import com.kookykraftmc.market.model.Listing;
+import com.kookykraftmc.market.service.MarketService;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -19,7 +22,6 @@ import java.util.Optional;
  * Created by TimeTheCat on 3/14/2017.
  */
 public class CreateCommand implements CommandExecutor {
-    private final Market pl = Market.instance;
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (src instanceof ConsoleSource) return CommandResult.success();
@@ -28,19 +30,24 @@ public class CreateCommand implements CommandExecutor {
             ItemStack itemStack = player.getItemInHand(HandTypes.MAIN_HAND).get();
             Optional<Integer> oquan = args.getOne(Text.of("quantity"));
             if (oquan.isPresent()) {
+                MarketService market = Sponge.getServiceManager().provide(MarketService.class).get();
                 int quan = oquan.get();
                 if (quan > itemStack.getQuantity()) throw new CommandException(Texts.NOT_ENOUGH_ITEMS);
                 if (quan > itemStack.getMaxStackQuantity()) throw new CommandException(Texts.TOO_ENOUGH_ITEMS);
                 Optional<Integer> oprice = args.getOne(Text.of("price"));
-                oprice.ifPresent(integer -> {
-                    int price = integer;
-                    int v = pl.getDataStore().addListing(player, itemStack, quan, price);
-                    if (v == 0) player.sendMessage(Texts.COULD_NOT_MAKE_LISTING);
-                    else if (v == -1) player.sendMessage(Texts.USE_ADD_STOCK);
-                    else {
-                        pl.getDataStore().getListing(String.valueOf(v)).sendTo(src);
-                        player.setItemInHand(HandTypes.MAIN_HAND, null);
+                oprice.ifPresent(price -> {
+                    Listing listing = new Listing(itemStack, player.getUniqueId(), quan, price, itemStack.getQuantity());
+                    if(market.exists(listing)) {
+                        player.sendMessage(Texts.USE_ADD_STOCK);
+                    } else {
+                        Optional<Listing> savedListing = market.addListing(listing);
+                        if (!savedListing.isPresent()) player.sendMessage(Texts.COULD_NOT_MAKE_LISTING);
+                        else {
+                            market.getListing(listing.getId()).sendTo(src);
+                            player.setItemInHand(HandTypes.MAIN_HAND, null);
+                        }
                     }
+
                 });
             }
         } else {

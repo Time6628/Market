@@ -1,10 +1,12 @@
-package com.kookykraftmc.market.datastores;
+package com.kookykraftmc.market.ui;
 
 import com.codehusky.huskyui.StateContainer;
 import com.codehusky.huskyui.states.action.ActionType;
 import com.codehusky.huskyui.states.action.CommandAction;
 import com.codehusky.huskyui.states.element.ActionableElement;
 import com.kookykraftmc.market.config.Texts;
+import com.kookykraftmc.market.model.Listing;
+import com.kookykraftmc.market.service.UuidCacheService;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -24,10 +26,11 @@ public class ListingUI {
 
     public ActionableElement getActionableElement(StateContainer sc) {
         ItemStack i = listing.getItemStack().copy();
-        i.setQuantity(listing.getQuantity());
+        i.setQuantity(listing.getQuantityPerSale());
         List<Text> lore = new ArrayList<>();
-        lore.add(Texts.guiListing.apply(listing.getSource()).build());
-        lore.add(Text.builder().color(TextColors.WHITE).append(Text.of("Seller: " + listing.getSellerName())).build());
+        lore.add(Texts.guiListing.apply(listing.toMap()).build());
+        String playerName = Sponge.getServiceManager().provide(UuidCacheService.class).get().getName(listing.getSeller());
+        lore.add(Text.builder().color(TextColors.WHITE).append(Text.of("Seller: " + playerName)).build());
 
         i.offer(Keys.ITEM_LORE, lore);
         CommandAction ca = new CommandAction(sc, ActionType.CLOSE, "0", "market check " + listing.getId(), CommandAction.CommandReceiver.PLAYER);
