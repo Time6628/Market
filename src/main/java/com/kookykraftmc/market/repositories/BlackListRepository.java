@@ -5,9 +5,9 @@ import com.kookykraftmc.market.model.ItemStackId;
 
 import java.util.stream.Stream;
 
-public interface BlackListRepository<CONFIG> {
+public interface BlackListRepository<C> {
 
-    void init(CONFIG config);
+    void init(C config);
     Stream<BlackListItem> all();
 
     boolean deleteById(ItemStackId id);

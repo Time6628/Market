@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public abstract class Repository<ID, T extends Identifiable> {
+public abstract class Repository<I, T extends Identifiable> {
     private String dbUri;
 
-    @Inject
+    @Inject 
     private Logger logger;
     private SqlService sql;
 
@@ -55,7 +55,7 @@ public abstract class Repository<ID, T extends Identifiable> {
         }
     }
 
-    public boolean delete(ID id) {
+    public boolean delete(I id) {
         try (Connection conn = getDataSource().getConnection()) {
             PreparedStatement stmt = createDeletePrepareStatement(conn, id);
 
@@ -66,7 +66,7 @@ public abstract class Repository<ID, T extends Identifiable> {
         }
     }
 
-    protected abstract PreparedStatement createDeletePrepareStatement(Connection conn, ID id) throws SQLException;
+    protected abstract PreparedStatement createDeletePrepareStatement(Connection conn, I id) throws SQLException;
 
     protected abstract PreparedStatement createInsertPrepareStatement(Connection conn, T t) throws SQLException;
 
@@ -78,7 +78,7 @@ public abstract class Repository<ID, T extends Identifiable> {
         return sql.getDataSource(dbUri);
     }
 
-    protected Optional<Map<String, String>> get(ID id) {
+    protected Optional<Map<String, String>> get(I id) {
         try (Connection conn = getDataSource().getConnection()) {
             PreparedStatement stmt = createGetPrepareStatement(conn, id);
             ResultSet results = stmt.executeQuery();
@@ -115,7 +115,7 @@ public abstract class Repository<ID, T extends Identifiable> {
         return result;
     }
 
-    protected abstract PreparedStatement createGetPrepareStatement(Connection conn, ID id) throws SQLException;
+    protected abstract PreparedStatement createGetPrepareStatement(Connection conn, I id) throws SQLException;
 
     protected abstract PreparedStatement createGetAllPrepareStatement(Connection conn) throws SQLException;
 

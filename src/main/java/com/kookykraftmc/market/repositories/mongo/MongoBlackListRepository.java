@@ -1,23 +1,39 @@
 package com.kookykraftmc.market.repositories.mongo;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.kookykraftmc.market.config.MarketConfig;
 import com.kookykraftmc.market.model.BlackListItem;
 import com.kookykraftmc.market.model.ItemStackId;
 import com.kookykraftmc.market.repositories.BlackListRepository;
+import com.kookykraftmc.market.service.ItemSerializer;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
+import org.bson.Document;
 
+import java.util.Collections;
 import java.util.stream.Stream;
 
 @Singleton
 public class MongoBlackListRepository implements BlackListRepository<MarketConfig.MongoDataStoreConfig> {
-    @Override
-    public void init(MarketConfig.MongoDataStoreConfig mongoDataStoreConfig) {
+    @Inject
+    private ItemSerializer itemSerializer;
+    private MongoClient mongoClient;
+    private String databaseName;
 
+    @Override
+    public void init(MarketConfig.MongoDataStoreConfig config) {
+        MongoCredential cred = MongoCredential.createCredential(config.username, config.database, config.password.toCharArray());
+        mongoClient = new MongoClient(new ServerAddress(config.host, config.port), Collections.singletonList(cred));
+        databaseName = config.database;
     }
 
     @Override
     public Stream<BlackListItem> all() {
-        return null;
+        return Stream.empty();
     }
 
     @Override

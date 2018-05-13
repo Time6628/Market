@@ -1,9 +1,7 @@
 package com.kookykraftmc.market.commands;
 
-import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.service.MarketService;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;

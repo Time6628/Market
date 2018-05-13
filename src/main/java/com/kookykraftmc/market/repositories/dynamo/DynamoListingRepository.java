@@ -25,7 +25,6 @@ import java.util.stream.Stream;
 @Singleton
 public class DynamoListingRepository implements ListingRepository<MarketConfig.DynamoDataStoreConfig> {
 
-    private AmazonDynamoDBAsync client = null;
     private DynamoDB dynamoDB;
     private DynamoDBMapper mapper;
 
@@ -40,7 +39,7 @@ public class DynamoListingRepository implements ListingRepository<MarketConfig.D
         AmazonDynamoDBAsyncClientBuilder builder = AmazonDynamoDBAsyncClientBuilder.standard();
         builder.setCredentials(new DefaultAWSCredentialsProviderChain());
         builder.setRegion(dynamoDataStoreConfig.region);
-        client = builder.build();
+        AmazonDynamoDBAsync client = builder.build();
         dynamoDB = new DynamoDB(client);
         setupTables();
         mapper = new DynamoDBMapper(client);

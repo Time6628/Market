@@ -14,7 +14,6 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
-import org.slf4j.Logger;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -24,14 +23,12 @@ import java.util.stream.Stream;
 @Singleton
 public class MongoListingRepository implements ListingRepository<MarketConfig.MongoDataStoreConfig> {
 
-    @Inject
-    private ItemSerializer itemSerializer;
-
     private static final String[] marketInfoTags = new String[]{"lastID"};
     private static final String[] marketListingTags = new String[]{"Item", "Seller", "Stock", "Price", "Quantity", "ID"};
     private final String marketListings = "market:listings";
     private final String marketInfo = "market:info";
-
+    @Inject
+    private ItemSerializer itemSerializer;
     private MongoClient mongoClient;
     private String databaseName;
 
@@ -81,7 +78,7 @@ public class MongoListingRepository implements ListingRepository<MarketConfig.Mo
     public Stream<Listing> all() {
         try (MongoClient client = getClient()) {
             FindIterable<Document> docs = client.getDatabase(databaseName).getCollection(marketListings)
-                    .find(Filters.all("tags", marketListings));
+                    .find(Filters.all("tags", marketListingTags));
             return Streams.stream(docs.map(this::toListing));
         }
     }

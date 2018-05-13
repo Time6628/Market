@@ -8,7 +8,6 @@ import ninja.leaping.configurate.ConfigurationOptions;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
-import ninja.leaping.configurate.objectmapping.GuiceObjectMapperFactory;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -34,7 +33,7 @@ public class ConfigLoader {
     }
 
     public boolean loadConfig() {
-        if(marketConfig != null) return true;
+        if (marketConfig != null) return true;
         try {
             File file = new File(market.configDir, "market.conf");
             if (!file.exists()) {

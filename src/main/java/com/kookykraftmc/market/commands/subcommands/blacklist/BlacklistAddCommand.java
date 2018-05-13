@@ -1,8 +1,5 @@
 package com.kookykraftmc.market.commands.subcommands.blacklist;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.service.MarketService;
 import org.spongepowered.api.Sponge;
@@ -23,7 +20,7 @@ import java.util.Optional;
 /**
  * Created by TimeTheCat on 3/26/2017.
  */
-public class BlacklistAddCommand implements CommandExecutor {
+public class    BlacklistAddCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {

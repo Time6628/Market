@@ -62,7 +62,7 @@ public class RepositoryProvider {
                     this.listingRepository = this.dynamoListingRepository;
                     dynamoListingRepository.init(cfg.dynamodb);
                     break;
-                case "sql":
+                default:
                     logger.info("SQL enabled.");
                     this.blackListRepository = this.sqlBlackListRepository;
                     sqlBlackListRepository.init(cfg.sqldb);

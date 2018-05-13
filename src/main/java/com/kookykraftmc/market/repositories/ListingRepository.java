@@ -8,9 +8,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-public interface ListingRepository<CONFIG> {
+public interface ListingRepository<C> {
 
-    void init(CONFIG config);
+    void init(C config);
 
     Optional<Listing> addListing(Listing listing);
 

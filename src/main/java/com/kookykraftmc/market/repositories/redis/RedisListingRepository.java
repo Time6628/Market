@@ -31,11 +31,11 @@ public class RedisListingRepository implements ListingRepository<MarketConfig.Re
     @Override
     public Optional<Listing> addListing(Listing listing) {
         try (Jedis jedis = jedisPool.getResource()) {
-            if (!jedis.exists(LAST_MARKET_ID())) {
-                jedis.set(LAST_MARKET_ID(), String.valueOf(1));
+            if (!jedis.exists(lastMarketId())) {
+                jedis.set(lastMarketId(), String.valueOf(1));
             }
-            int id = Integer.parseInt(jedis.get(LAST_MARKET_ID()));
-            String key = MARKET_ITEM_KEY(String.valueOf(id));
+            int id = Integer.parseInt(jedis.get(lastMarketId()));
+            String key = marketItemKey(String.valueOf(id));
             Transaction m = jedis.multi();
             m.hset(key, "Item", itemSerializer.serializeItem(listing.getItemStack()));
             m.hset(key, "Seller", listing.getSeller().toString());
@@ -44,9 +44,9 @@ public class RedisListingRepository implements ListingRepository<MarketConfig.Re
             m.hset(key, "Quantity", String.valueOf(listing.getQuantityPerSale()));
             m.exec();
 
-            jedis.hset(FOR_SALE(), String.valueOf(id), listing.getSeller().toString());
+            jedis.hset(forSale(), String.valueOf(id), listing.getSeller().toString());
 
-            jedis.incr(LAST_MARKET_ID());
+            jedis.incr(lastMarketId());
 
             listing.setId(Integer.toString(id));
             return Optional.ofNullable(listing);
@@ -56,10 +56,10 @@ public class RedisListingRepository implements ListingRepository<MarketConfig.Re
     @Override
     public Stream<Listing> all() {
         try (Jedis jedis = jedisPool.getResource()) {
-            Set<String> openListings = jedis.hgetAll(FOR_SALE()).keySet();
+            Set<String> openListings = jedis.hgetAll(forSale()).keySet();
             List<Listing> listings = new ArrayList<>();
             openListings.forEach(listingId -> {
-                Map<String, String> listing = jedis.hgetAll(MARKET_ITEM_KEY(listingId));
+                Map<String, String> listing = jedis.hgetAll(marketItemKey(listingId));
                 Listing l = toListing(listing, listingId);
                 if (l.getItemStack() != null) {
                     listings.add(l);
@@ -85,15 +85,15 @@ public class RedisListingRepository implements ListingRepository<MarketConfig.Re
     public Optional<Listing> getById(String id) {
         try (Jedis jedis = jedisPool.getResource()) {
             //if the item is not for sale, do not getById the listing
-            if (!jedis.hexists(FOR_SALE(), id)) return Optional.empty();
-            return Optional.of(toListing(jedis.hgetAll(MARKET_ITEM_KEY(id)), id));
+            if (!jedis.hexists(forSale(), id)) return Optional.empty();
+            return Optional.of(toListing(jedis.hgetAll(marketItemKey(id)), id));
         }
     }
 
     public void deleteById(String listingId) {
         try (Jedis jedis = jedisPool.getResource()) {
-            jedis.hdel(FOR_SALE(), listingId);
-            jedis.del(MARKET_ITEM_KEY(listingId));
+            jedis.hdel(forSale(), listingId);
+            jedis.del(marketItemKey(listingId));
         }
     }
 
@@ -107,15 +107,15 @@ public class RedisListingRepository implements ListingRepository<MarketConfig.Re
         }
     }
 
-    private String LAST_MARKET_ID() {
+    private String lastMarketId() {
         return "market:" + this.serverName + ":lastID";
     }
 
-    private String MARKET_ITEM_KEY(String id) {
+    private String marketItemKey(String id) {
         return "market:" + this.serverName + ":" + id;
     }
 
-    private String FOR_SALE() {
+    private String forSale() {
         return "market:" + this.serverName + ":open";
     }
 }
