@@ -107,7 +107,7 @@ public class MarketService {
      */
     public List<Listing> getListings(@Nullable UUID playerUUID, boolean staff) {
         return this.listingRepository.all()
-                .filter(listing -> listing.getStock() > listing.getQuantityPerSale() || staff || listing.getSeller().equals(playerUUID))
+                .filter(listing -> listing.getStock() >= listing.getQuantityPerSale() || staff || listing.getSeller().equals(playerUUID))
                 .collect(Collectors.toList());
     }
 
