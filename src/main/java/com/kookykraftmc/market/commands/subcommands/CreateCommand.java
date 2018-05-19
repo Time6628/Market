@@ -1,6 +1,5 @@
 package com.kookykraftmc.market.commands.subcommands;
 
-import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.model.Listing;
 import com.kookykraftmc.market.service.MarketService;
@@ -36,8 +35,8 @@ public class CreateCommand implements CommandExecutor {
                 if (quan > itemStack.getMaxStackQuantity()) throw new CommandException(Texts.TOO_ENOUGH_ITEMS);
                 Optional<Integer> oprice = args.getOne(Text.of("price"));
                 oprice.ifPresent(price -> {
-                    Listing listing = new Listing(itemStack, player.getUniqueId(), quan, price, itemStack.getQuantity());
-                    if(market.exists(listing)) {
+                    Listing listing = new Listing(itemStack, player.getUniqueId(), itemStack.getQuantity(), price, quan);
+                    if (market.exists(listing)) {
                         player.sendMessage(Texts.USE_ADD_STOCK);
                     } else {
                         Optional<Listing> savedListing = market.addListing(listing);

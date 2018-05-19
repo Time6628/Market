@@ -19,6 +19,7 @@ import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.economy.EconomyService;
+import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
@@ -54,6 +55,7 @@ public class MarketService {
         this.blackListRepository = repositoryProvider.getBlackListRepository();
         this.listingRepository = repositoryProvider.getListingRepository();
         marketCause = Cause.builder().append(marketPlugin).build(EventContext.builder().build());
+        updateBlackList();
     }
 
     public static PaginationService getPaginationService() {
@@ -211,15 +213,15 @@ public class MarketService {
     /**
      * Buy from a listing.
      *
-     * @param uniqueAccount The account of the player buying it.
+     * @param account The account of the player buying it.
      * @param id            The listing id
      * @return the {@link ItemStack} created from the purchase,
      * null if it could not purchase it.
      */
-    public ItemStack purchase(UniqueAccount uniqueAccount, String id) {
+    public ItemStack purchase(Account account, String id) {
         return listingRepository.getById(id)
                 .map(listing -> {
-                    TransactionResult tr = uniqueAccount.transfer(
+                    TransactionResult tr = account.transfer(
                             getEconomyService().getOrCreateAccount(listing.getSeller()).get(),
                             getEconomyService().getDefaultCurrency(),
                             BigDecimal.valueOf(listing.getPrice()),
@@ -324,7 +326,7 @@ public class MarketService {
         return l.build();
     }
 
-    public void updateBlackList() {
+    private void updateBlackList() {
         this.blacklistedItems = blackListRepository.all().collect(Collectors.toList());
     }
 

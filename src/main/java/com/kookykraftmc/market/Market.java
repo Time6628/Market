@@ -12,7 +12,6 @@ import org.spongepowered.api.Game;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.filter.Getter;
@@ -24,8 +23,6 @@ import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.text.Text;
 
-import java.io.File;
-
 @Plugin(id = "market",
         name = "Market",
         description = "Market",
@@ -36,9 +33,6 @@ import java.io.File;
 )
 public class Market {
 
-    @Inject
-    @ConfigDir(sharedRoot = false)
-    public File configDir;
     @Inject
     private Logger logger;
     @Inject

@@ -3,12 +3,12 @@ package com.kookykraftmc.market.config;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.kookykraftmc.market.Market;
 import ninja.leaping.configurate.ConfigurationOptions;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
+import org.spongepowered.api.config.ConfigDir;
 
 import java.io.File;
 
@@ -16,7 +16,8 @@ import java.io.File;
 public class ConfigLoader {
 
     @Inject
-    private Market market;
+    @ConfigDir(sharedRoot = false)
+    private File configDir;
 
     @Inject
     private Logger logger;
@@ -27,15 +28,15 @@ public class ConfigLoader {
 
     @Inject
     public void postConstruct() {
-        if (!market.configDir.exists()) {
-            market.configDir.mkdirs();
+        if (!configDir.exists()) {
+            configDir.mkdirs();
         }
     }
 
     public boolean loadConfig() {
         if (marketConfig != null) return true;
         try {
-            File file = new File(market.configDir, "market.conf");
+            File file = new File(configDir, "market.conf");
             if (!file.exists()) {
                 file.createNewFile();
             }
@@ -52,7 +53,7 @@ public class ConfigLoader {
 
     public boolean loadTexts() {
         try {
-            File file = new File(market.configDir, "messages.conf");
+            File file = new File(configDir, "messages.conf");
             if (!file.exists()) {
                 file.createNewFile();
             }
