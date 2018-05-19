@@ -20,7 +20,6 @@ import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.Account;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.pagination.PaginationList;
@@ -214,7 +213,7 @@ public class MarketService {
      * Buy from a listing.
      *
      * @param account The account of the player buying it.
-     * @param id            The listing id
+     * @param id      The listing id
      * @return the {@link ItemStack} created from the purchase,
      * null if it could not purchase it.
      */
