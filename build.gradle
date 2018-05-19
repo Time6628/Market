@@ -5,6 +5,7 @@ plugins {
     id "ninja.miserable.blossom" version "1.0.1"
     id "java"
     id "idea"
+    id 'maven'
 }
 
 group = pluginGroup
@@ -16,6 +17,7 @@ if (System.getenv().BUILD_NUMBER != null) {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
     jcenter()
     maven {
@@ -35,6 +37,8 @@ dependencies {
     shadow "org.mongodb:mongodb-driver:3.5.0"
     shadow "com.amazonaws:aws-java-sdk-dynamodb:1.11.202"
 }
+
+apply plugin: "maven"
 
 configurations {
     compile.extendsFrom shadow
