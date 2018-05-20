@@ -22,8 +22,6 @@ import org.slf4j.Logger;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 @Singleton
 public class DynamoListingRepository implements ListingRepository<MarketConfig.DynamoDataStoreConfig> {
 
@@ -64,7 +62,7 @@ public class DynamoListingRepository implements ListingRepository<MarketConfig.D
             dynamoDBListing.setPrice(listing.getPrice());
             dynamoDBListing.setQuantity(listing.getQuantityPerSale());
             dynamoDBListing.setStock(listing.getStock());
-            if (isNotBlank(listing.getId())) {
+            if (listing.getId() != null) {
                 dynamoDBListing.setID(listing.getId());
             }
             mapper.save(listing);

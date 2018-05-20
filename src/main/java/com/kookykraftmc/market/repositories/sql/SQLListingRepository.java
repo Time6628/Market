@@ -17,8 +17,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 @Singleton
 public class SQLListingRepository extends Repository<String, Listing> implements ListingRepository<MarketConfig.SQLDataStoreConfig> {
 
@@ -52,7 +50,7 @@ public class SQLListingRepository extends Repository<String, Listing> implements
 
     @Override
     public Optional<Listing> upsert(Listing listing) {
-        if(isNotBlank(listing.getId())) {
+        if (listing.getId() != null) {
             this.deleteById(listing.getId());
         }
         return super.insert(listing);

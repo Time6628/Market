@@ -15,8 +15,6 @@ import redis.clients.jedis.Transaction;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 @Singleton
 public class RedisListingRepository implements ListingRepository<MarketConfig.RedisDataStoreConfig> {
     private JedisPool jedisPool;
@@ -51,7 +49,7 @@ public class RedisListingRepository implements ListingRepository<MarketConfig.Re
     }
 
     private String getOrCreateId(Listing listing, Jedis jedis) {
-        if (isNotBlank(listing.getId())) return listing.getId();
+        if (listing.getId() != null) return listing.getId();
         if (!jedis.exists(lastMarketId())) {
             jedis.set(lastMarketId(), String.valueOf(1));
         }

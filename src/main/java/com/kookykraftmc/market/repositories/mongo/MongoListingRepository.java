@@ -21,8 +21,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 @Singleton
 public class MongoListingRepository implements ListingRepository<MarketConfig.MongoDataStoreConfig> {
 
@@ -61,7 +59,7 @@ public class MongoListingRepository implements ListingRepository<MarketConfig.Mo
     @Override
     public Optional<Listing> upsert(Listing listing) {
         try (MongoClient client = getClient()) {
-            String id = isNotBlank(listing.getId()) ? listing.getId() : Integer.toString(setLastID(getLastID() + 1));
+            String id = listing.getId() != null ? listing.getId() : Integer.toString(setLastID(getLastID() + 1));
             Document doc = new Document();
             doc.append("Item", itemSerializer.serializeItem(listing.getItemStack()));
             doc.append("Seller", listing.getSeller().toString());
