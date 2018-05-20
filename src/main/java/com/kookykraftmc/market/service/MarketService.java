@@ -219,6 +219,10 @@ public class MarketService {
     public ItemStack purchase(Account account, String id) {
         return listingRepository.getById(id)
                 .map(listing -> {
+                    if (listing.getStock() < listing.getQuantityPerSale()) {
+                        return null;
+                    }
+
                     TransactionResult tr = account.transfer(
                             getEconomyService().getOrCreateAccount(listing.getSeller()).get(),
                             getEconomyService().getDefaultCurrency(),
