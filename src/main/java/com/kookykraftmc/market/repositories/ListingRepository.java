@@ -12,7 +12,7 @@ public interface ListingRepository<C> {
 
     void init(C config);
 
-    Optional<Listing> addListing(Listing listing);
+    Optional<Listing> upsert(Listing listing);
 
     Stream<Listing> all();
 

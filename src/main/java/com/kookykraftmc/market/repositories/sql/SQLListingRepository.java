@@ -17,6 +17,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 @Singleton
 public class SQLListingRepository extends Repository<String, Listing> implements ListingRepository<MarketConfig.SQLDataStoreConfig> {
 
@@ -49,7 +51,10 @@ public class SQLListingRepository extends Repository<String, Listing> implements
     }
 
     @Override
-    public Optional<Listing> addListing(Listing listing) {
+    public Optional<Listing> upsert(Listing listing) {
+        if(isNotBlank(listing.getId())) {
+            this.deleteById(listing.getId());
+        }
         return super.insert(listing);
     }
 
@@ -125,14 +130,15 @@ public class SQLListingRepository extends Repository<String, Listing> implements
 
     protected PreparedStatement createInsertPrepareStatement(Connection connection, Listing listing) throws SQLException {
         String sql = "INSERT INTO LISTINGS"
-                + "(SELLER, ITEM, STOCK, PRICE, QTY) VALUES"
-                + "(?,?,?,?,?)";
+                + "(ID, SELLER, ITEM, STOCK, PRICE, QTY) VALUES"
+                + "(?,?,?,?,?,?)";
         PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-        stmt.setString(1, listing.getSeller().toString());
-        stmt.setString(2, itemSerializer.serializeItem(listing.getItemStack()));
-        stmt.setInt(3, listing.getStock());
-        stmt.setInt(4, listing.getPrice());
-        stmt.setInt(5, listing.getQuantityPerSale());
+        stmt.setString(1, listing.getId());
+        stmt.setString(2, listing.getSeller().toString());
+        stmt.setString(3, itemSerializer.serializeItem(listing.getItemStack()));
+        stmt.setInt(4, listing.getStock());
+        stmt.setInt(5, listing.getPrice());
+        stmt.setInt(6, listing.getQuantityPerSale());
         return stmt;
     }
 

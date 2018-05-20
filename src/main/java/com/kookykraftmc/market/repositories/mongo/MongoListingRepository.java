@@ -13,12 +13,15 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOptions;
 import org.bson.Document;
 
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
+
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Singleton
 public class MongoListingRepository implements ListingRepository<MarketConfig.MongoDataStoreConfig> {
@@ -56,9 +59,9 @@ public class MongoListingRepository implements ListingRepository<MarketConfig.Mo
     }
 
     @Override
-    public Optional<Listing> addListing(Listing listing) {
+    public Optional<Listing> upsert(Listing listing) {
         try (MongoClient client = getClient()) {
-            int id = getLastID() + 1;
+            String id = isNotBlank(listing.getId()) ? listing.getId() : Integer.toString(setLastID(getLastID() + 1));
             Document doc = new Document();
             doc.append("Item", itemSerializer.serializeItem(listing.getItemStack()));
             doc.append("Seller", listing.getSeller().toString());
@@ -67,10 +70,9 @@ public class MongoListingRepository implements ListingRepository<MarketConfig.Mo
             doc.append("Quantity", listing.getQuantityPerSale());
             doc.append("ID", id);
             MongoCollection<Document> collection = client.getDatabase(databaseName).getCollection(marketListings);
-            collection.insertOne(doc);
-            setLastID(id);
-            listing.setId(Integer.toString(id));
-            return Optional.ofNullable(listing);
+            collection.updateOne(Filters.eq("ID", listing.getId()), doc, new UpdateOptions().upsert(true));
+            listing.setId(id);
+            return Optional.of(listing);
         }
     }
 
@@ -128,12 +130,14 @@ public class MongoListingRepository implements ListingRepository<MarketConfig.Mo
         }
     }
 
-    private void setLastID(int lastID) {
+    private int setLastID(int lastID) {
         try (MongoClient client = getClient()) {
             Document found = client.getDatabase(databaseName).getCollection(marketInfo).find(Filters.all("tags", marketInfoTags)).first();
             found.put("lastID", lastID);
             client.getDatabase(databaseName).getCollection(marketInfo).replaceOne(Filters.all("tags", marketInfoTags), found);
         }
+
+        return lastID;
     }
 
 }

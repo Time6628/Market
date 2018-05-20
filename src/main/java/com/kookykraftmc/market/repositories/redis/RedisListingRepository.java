@@ -15,6 +15,8 @@ import redis.clients.jedis.Transaction;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 @Singleton
 public class RedisListingRepository implements ListingRepository<MarketConfig.RedisDataStoreConfig> {
     private JedisPool jedisPool;
@@ -29,13 +31,11 @@ public class RedisListingRepository implements ListingRepository<MarketConfig.Re
     }
 
     @Override
-    public Optional<Listing> addListing(Listing listing) {
+    public Optional<Listing> upsert(Listing listing) {
         try (Jedis jedis = jedisPool.getResource()) {
-            if (!jedis.exists(lastMarketId())) {
-                jedis.set(lastMarketId(), String.valueOf(1));
-            }
-            int id = Integer.parseInt(jedis.get(lastMarketId()));
-            String key = marketItemKey(String.valueOf(id));
+            listing.setId(getOrCreateId(listing, jedis));
+
+            String key = marketItemKey(listing.getId());
             Transaction m = jedis.multi();
             m.hset(key, "Item", itemSerializer.serializeItem(listing.getItemStack()));
             m.hset(key, "Seller", listing.getSeller().toString());
@@ -44,13 +44,20 @@ public class RedisListingRepository implements ListingRepository<MarketConfig.Re
             m.hset(key, "Quantity", String.valueOf(listing.getQuantityPerSale()));
             m.exec();
 
-            jedis.hset(forSale(), String.valueOf(id), listing.getSeller().toString());
+            jedis.hset(forSale(), listing.getId(), listing.getSeller().toString());
 
-            jedis.incr(lastMarketId());
-
-            listing.setId(Integer.toString(id));
             return Optional.ofNullable(listing);
         }
+    }
+
+    private String getOrCreateId(Listing listing, Jedis jedis) {
+        if (isNotBlank(listing.getId())) return listing.getId();
+        if (!jedis.exists(lastMarketId())) {
+            jedis.set(lastMarketId(), String.valueOf(1));
+        }
+        String id = jedis.get(lastMarketId());
+        jedis.incr(lastMarketId());
+        return id;
     }
 
     @Override

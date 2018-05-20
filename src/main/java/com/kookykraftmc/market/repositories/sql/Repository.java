@@ -16,7 +16,7 @@ import java.util.Optional;
 public abstract class Repository<I, T extends Identifiable> {
     private String dbUri;
 
-    @Inject 
+    @Inject
     private Logger logger;
     private SqlService sql;
 
@@ -36,21 +36,18 @@ public abstract class Repository<I, T extends Identifiable> {
 
             int affectedRows = stmt.executeUpdate();
 
-            if (affectedRows == 0) {
-                throw new SQLException("Creating user failed, no rows affected.");
-            }
-
-            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    t.setId(generatedKeys.getObject(1));
+            if (affectedRows != 0) {
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        t.setId(generatedKeys.getObject(1));
+                    }
                 }
-                else {
-                    throw new SQLException("Creating user failed, no ID obtained.");
-                }
+            } else {
+                throw new SQLException("Creating failed");
             }
             return Optional.ofNullable(t);
         } catch (SQLException e) {
-            logger.error("Unable to SQL addListing", e);
+            logger.error("Unable to SQL upsert", e);
             return Optional.empty();
         }
     }
@@ -61,7 +58,7 @@ public abstract class Repository<I, T extends Identifiable> {
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            logger.error("Unable to SQL addListing", e);
+            logger.error("Unable to SQL upsert", e);
             return false;
         }
     }

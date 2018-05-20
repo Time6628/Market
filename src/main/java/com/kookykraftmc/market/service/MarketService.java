@@ -86,7 +86,7 @@ public class MarketService {
         if (exists(listing))
             return Optional.empty();
 
-        return listingRepository.addListing(listing);
+        return listingRepository.upsert(listing);
     }
 
     /**
@@ -203,8 +203,7 @@ public class MarketService {
                 .map(listing -> {
                     listing.setStock(listing.getStock() + itemStack.getQuantity());
 
-                    listingRepository.deleteById(listing.getId());
-                    listingRepository.addListing(listing);
+                    listingRepository.upsert(listing);
                     return true;
                 }).orElse(false);
     }
@@ -237,7 +236,7 @@ public class MarketService {
                         //if the new quantity is less than the quantity to be sold, expire the listing
                         listing.setStock(newQuant);
                         listingRepository.deleteById(listing.getId());
-                        listingRepository.addListing(listing);
+                        listingRepository.upsert(listing);
                         ItemStack nis = is.copy();
                         nis.setQuantity(quant);
                         return nis;

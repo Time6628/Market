@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 @Singleton
 public class DynamoListingRepository implements ListingRepository<MarketConfig.DynamoDataStoreConfig> {
 
@@ -54,7 +56,7 @@ public class DynamoListingRepository implements ListingRepository<MarketConfig.D
 
 
     @Override
-    public Optional<Listing> addListing(Listing listing) {
+    public Optional<Listing> upsert(Listing listing) {
         try {
             DynamoDBListing dynamoDBListing = new DynamoDBListing();
             dynamoDBListing.setItemStack(itemSerializer.serializeItem(listing.getItemStack()));
@@ -62,10 +64,13 @@ public class DynamoListingRepository implements ListingRepository<MarketConfig.D
             dynamoDBListing.setPrice(listing.getPrice());
             dynamoDBListing.setQuantity(listing.getQuantityPerSale());
             dynamoDBListing.setStock(listing.getStock());
+            if (isNotBlank(listing.getId())) {
+                dynamoDBListing.setID(listing.getId());
+            }
             mapper.save(listing);
 
             listing.setId(dynamoDBListing.getID());
-            return Optional.ofNullable(listing);
+            return Optional.of(listing);
         } catch (Exception e) {
             logger.error("Unable to save listing", e);
             return Optional.empty();
