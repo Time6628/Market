@@ -1,8 +1,9 @@
 package com.kookykraftmc.market.repositories;
 
-import com.kookykraftmc.market.model.ItemStackId;
 import com.kookykraftmc.market.model.Listing;
+import com.kookykraftmc.market.service.ItemStackComparator;
 import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.item.inventory.ItemStack;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -18,16 +19,18 @@ public interface ListingRepository<C> {
 
     /**
      * Should be override for better perf
-     * @param itemStackId
+     *
+     * @param itemStack
      * @param seller
      * @return
      */
-    default boolean exists(ItemStackId itemStackId, UUID seller) {
-        return findAllBySellerId(seller).anyMatch(listing -> ItemStackId.from(listing.getItemStack()).equals(itemStackId));
+    default boolean exists(ItemStack itemStack, UUID seller) {
+        return findAllBySellerId(seller).anyMatch(listing -> ItemStackComparator.eq(listing.getItemStack(), itemStack));
     }
 
     /**
      * Should be override for better perf
+     *
      * @param sellerId
      * @return
      */
@@ -37,6 +40,7 @@ public interface ListingRepository<C> {
 
     /**
      * Should be override for better perf
+     *
      * @param itemType
      * @return
      */

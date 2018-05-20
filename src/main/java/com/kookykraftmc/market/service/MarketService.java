@@ -96,7 +96,7 @@ public class MarketService {
      * @return true if another listing exists, false otherwise.
      */
     public boolean exists(Listing listing) {
-        return listingRepository.exists(ItemStackId.from(listing.getItemStack()), listing.getSeller());
+        return listingRepository.exists(listing.getItemStack(), listing.getSeller());
     }
 
     /**
@@ -199,7 +199,7 @@ public class MarketService {
     public boolean addStock(ItemStack itemStack, String listingId, UUID playerUUID) {
         return listingRepository.getById(listingId)
                 .filter(listing -> listing.getSeller().equals(playerUUID))
-                .filter(listing -> ItemStackId.from(itemStack).equals(ItemStackId.from(listing.getItemStack())))
+                .filter(listing -> ItemStackComparator.eq(itemStack, listing.getItemStack()))
                 .map(listing -> {
                     listing.setStock(listing.getStock() + itemStack.getQuantity());
 
