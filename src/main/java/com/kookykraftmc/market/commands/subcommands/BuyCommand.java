@@ -2,7 +2,9 @@ package com.kookykraftmc.market.commands.subcommands;
 
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.config.Texts;
+import com.kookykraftmc.market.service.MarketService;
 import com.kookykraftmc.market.tasks.InvFullTask;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -23,25 +25,25 @@ import java.util.concurrent.TimeUnit;
  * Created by TimeTheCat on 3/18/2017.
  */
 public class BuyCommand implements CommandExecutor {
-    private final Market pl = Market.instance;
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         Optional<String> id = args.getOne(Text.of("id"));
+        MarketService market = Sponge.getServiceManager().provide(MarketService.class).get();
         if (id.isPresent()) {
             Player player = (Player) src;
-            Optional<UniqueAccount> acc = pl.getEconomyService().getOrCreateAccount(player.getUniqueId());
+            Optional<UniqueAccount> acc = market.getEconomyService().getOrCreateAccount(player.getUniqueId());
             if (acc.isPresent()) {
-                ItemStack a = pl.getDataStore().purchase(acc.get(), id.get());
+                ItemStack a = market.purchase(acc.get(), id.get());
                 if (a == null) player.sendMessage(Texts.NO_BUY_ITEM);
                 else {
                     InventoryTransactionResult offer = player.getInventory().query(Hotbar.class, GridInventory.class).offer(a);
                     if (!offer.getType().equals(InventoryTransactionResult.Type.SUCCESS)) {
                         player.sendMessage(Texts.INV_FULL);
-                        pl.getScheduler().createTaskBuilder()
+                        Sponge.getScheduler().createTaskBuilder()
                                 .name("Market " + player.getName() + " " + id)
                                 .execute(new InvFullTask(a, player))
                                 .delay(30, TimeUnit.SECONDS)
-                                .submit(pl);
+                                .submit(market);
                         return CommandResult.success();
                     } else {
                         player.sendMessage(Texts.PURCHASE_SUCCESSFUL);

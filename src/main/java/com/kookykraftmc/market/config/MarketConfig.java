@@ -6,11 +6,10 @@ import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
 @ConfigSerializable
 public class MarketConfig {
 
-    @Setting(value = "Server", comment = "Name of the server to be used when storing data.")
-    public String server = "TEST";
+
 
     @Setting(value = "DataStore", comment = "Set to 'redis' if you are using redis, set to 'mongo' if you are using MongoDB.")
-    public String dataStore = "redis";
+    public String dataStore = "sql";
 
     @Setting("Redis")
     public RedisDataStoreConfig redis = new RedisDataStoreConfig();
@@ -20,6 +19,9 @@ public class MarketConfig {
 
     @Setting("DynamoDB")
     public DynamoDataStoreConfig dynamodb = new DynamoDataStoreConfig();
+
+    @Setting("Sql")
+    public SQLDataStoreConfig sqldb = new SQLDataStoreConfig();
 
     @Setting(value = "Chest-Is-Default", comment = "Should the chest GUI be the default gui instead of the chat gui.")
     public boolean chestDefault = false;
@@ -37,15 +39,9 @@ public class MarketConfig {
         @Setting("Password")
         public String password = "";
 
-        @Setting("Keys")
-        public Keys keys = new Keys();
+        @Setting(value = "Server", comment = "Name of the server to be used when storing data.")
+        public String server = "TEST";
 
-        @ConfigSerializable
-        public static class Keys {
-
-            @Setting(value = "UUID-Cache")
-            public String uuidCache = "market:uuidcache";
-        }
     }
 
     @ConfigSerializable
@@ -72,5 +68,12 @@ public class MarketConfig {
 
         @Setting("Region")
         public String region = "us-east-1";
+    }
+
+    @ConfigSerializable
+    public static class SQLDataStoreConfig {
+
+        @Setting("DataBase")
+        public String dbUri = "jdbc:h2:./market.db";
     }
 }

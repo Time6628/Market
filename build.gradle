@@ -5,6 +5,7 @@ plugins {
     id "ninja.miserable.blossom" version "1.0.1"
     id "java"
     id "idea"
+    id 'maven'
 }
 
 group = pluginGroup
@@ -16,6 +17,7 @@ if (System.getenv().BUILD_NUMBER != null) {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
     jcenter()
     maven {
@@ -28,13 +30,15 @@ repositories {
     }
 }
 dependencies {
-    compile "org.spongepowered:spongeapi:6.+"
+    compile "org.spongepowered:spongeapi:7.+"
     compile "com.github.codeHusky:HuskyUI-Plugin:v0.3.1"
     shadow "redis.clients:jedis:2.9.0"
     shadow "org.apache.commons:commons-pool2:2.4.2"
     shadow "org.mongodb:mongodb-driver:3.5.0"
     shadow "com.amazonaws:aws-java-sdk-dynamodb:1.11.202"
 }
+
+apply plugin: "maven"
 
 configurations {
     compile.extendsFrom shadow
