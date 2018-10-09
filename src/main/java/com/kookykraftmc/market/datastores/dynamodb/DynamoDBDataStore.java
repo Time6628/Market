@@ -13,9 +13,8 @@ import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.config.MarketConfig;
 import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.datastores.Listing;
-import com.kookykraftmc.market.datastores.MarketDataStore;
+import com.kookykraftmc.market.datastores.interfaces.MarketDataStore;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -205,7 +204,7 @@ public class DynamoDBDataStore implements MarketDataStore {
         DynamoDBScanExpression dbse = new DynamoDBScanExpression().withFilterExpression("ID = :id").withExpressionAttributeValues(Collections.singletonMap(":id", new AttributeValue().withS(id)));
         DynamoDBListing listing = mapper.scan(DynamoDBListing.class, dbse).get(0);
         if (listing != null) {
-            TransactionResult tr = uniqueAccount.transfer(market.getEconomyService().getOrCreateAccount(listing.getSeller()).get(), market.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(listing.getPrice()), Cause.of(market.marketCause));
+            TransactionResult tr = uniqueAccount.transfer(market.getEconomyService().getOrCreateAccount(listing.getSeller()).get(), market.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(listing.getPrice()), market.marketCause);
             if (tr.getResult().equals(ResultType.SUCCESS)) {
                 //get the itemstack
                 ItemStack is = market.deserializeItemStack(listing.getItemStack()).get();
@@ -228,7 +227,8 @@ public class DynamoDBDataStore implements MarketDataStore {
             } else {
                 return null;
             }
-        } return null;
+        }
+        return null;
     }
 
     @Override

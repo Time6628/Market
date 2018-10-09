@@ -1,6 +1,5 @@
 package com.kookykraftmc.market.datastores;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.kookykraftmc.market.Market;
 import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.datastores.dynamodb.DynamoDBListing;
@@ -10,7 +9,9 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 public class Listing {
 

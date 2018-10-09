@@ -21,6 +21,7 @@ import java.util.Optional;
  */
 public class SearchCommand implements CommandExecutor {
     private static final Market pl = Market.instance;
+
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         List<Text> texts = new ArrayList<>();

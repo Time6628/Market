@@ -12,6 +12,7 @@ import org.spongepowered.api.command.spec.CommandExecutor;
  */
 public class BlackListCommand implements CommandExecutor {
     private final Market pl = Market.instance;
+
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         pl.getDataStore().getBlacklistedItemList().sendTo(src);

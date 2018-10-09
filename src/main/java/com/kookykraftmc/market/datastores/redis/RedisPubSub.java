@@ -23,6 +23,6 @@ class RedisPubSub extends JedisPubSub {
     static class Channels {
         static final String marketBlacklistAdd = "market-blacklist-add"; //itemID
         static final String marketBlacklistRemove = "market-blacklist-remove"; //itemID
-        static final String[] channels = { marketBlacklistAdd, marketBlacklistRemove };
+        static final String[] channels = {marketBlacklistAdd, marketBlacklistRemove};
     }
 }

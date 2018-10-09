@@ -28,8 +28,8 @@ repositories {
     }
 }
 dependencies {
-    compile "org.spongepowered:spongeapi:6.+"
-    compile "com.github.codeHusky:HuskyUI-Plugin:v0.3.1"
+    compile "org.spongepowered:spongeapi:7.+"
+    implementation 'com.github.codeHusky:HuskyUI-Plugin:v0.6.0-PRE2-HOTFIX2'
     shadow "redis.clients:jedis:2.9.0"
     shadow "org.apache.commons:commons-pool2:2.4.2"
     shadow "org.mongodb:mongodb-driver:3.5.0"

@@ -8,7 +8,7 @@ import com.kookykraftmc.market.commands.subcommands.blacklist.BlacklistRemoveCom
 import com.kookykraftmc.market.config.ConfigLoader;
 import com.kookykraftmc.market.config.MarketConfig;
 import com.kookykraftmc.market.config.Texts;
-import com.kookykraftmc.market.datastores.*;
+import com.kookykraftmc.market.datastores.interfaces.MarketDataStore;
 import com.kookykraftmc.market.datastores.dynamodb.DynamoDBDataStore;
 import com.kookykraftmc.market.datastores.mongo.MongoDBDataStore;
 import com.kookykraftmc.market.datastores.redis.RedisDataStore;
@@ -25,7 +25,8 @@ import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.data.persistence.DataTranslators;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.cause.NamedCause;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
@@ -41,7 +42,9 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Plugin(id = "market",
         name = "Market",
@@ -54,24 +57,17 @@ import java.util.*;
 public class Market {
 
     public static Market instance;
-
-    @Inject
-    private Logger logger;
-
-    @Inject
-    private Game game;
-
     @Inject
     @ConfigDir(sharedRoot = false)
     public File configDir;
-
     @Inject
     public GuiceObjectMapperFactory factory;
-
+    public Cause marketCause;
+    @Inject
+    private Logger logger;
+    @Inject
+    private Game game;
     private String serverName;
-
-    public NamedCause marketCause;
-
     private MarketDataStore dataStore;
 
     private MarketConfig cfg;
@@ -88,7 +84,7 @@ public class Market {
     @Listener
     public void onInit(GameInitializationEvent event) {
         instance = this;
-        marketCause = NamedCause.of("Market", this);
+        marketCause = Cause.of(EventContext.builder().build(), this);
         serverName = cfg.server;
 
         if (cfg.dataStore.equals("redis")) {

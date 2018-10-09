@@ -19,6 +19,7 @@ import java.util.Optional;
  */
 public class AddStockCommand implements CommandExecutor {
     private final Market pl = Market.instance;
+
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         Player player = (Player) src;

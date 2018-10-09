@@ -1,10 +1,10 @@
 package com.kookykraftmc.market.datastores.mongo;
 
 import com.kookykraftmc.market.Market;
-import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.config.MarketConfig;
+import com.kookykraftmc.market.config.Texts;
 import com.kookykraftmc.market.datastores.Listing;
-import com.kookykraftmc.market.datastores.MarketDataStore;
+import com.kookykraftmc.market.datastores.interfaces.MarketDataStore;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
@@ -13,7 +13,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -235,7 +234,7 @@ public class MongoDBDataStore implements MarketDataStore {
             Document listing = client.getDatabase(databaseName).getCollection(MongoCollections.marketListings).find(Filters.eq("ID", id)).first();
             if (listing == null) return null;
             else {
-                TransactionResult tr = uniqueAccount.transfer(market.getEconomyService().getOrCreateAccount(listing.getString(listing.getString("Seller"))).get(), market.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(listing.getLong("Price")), Cause.of(market.marketCause));
+                TransactionResult tr = uniqueAccount.transfer(market.getEconomyService().getOrCreateAccount(listing.getString(listing.getString("Seller"))).get(), market.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(listing.getLong("Price")), market.marketCause);
                 if (tr.getResult().equals(ResultType.SUCCESS)) {
                     //get the itemstack
                     ItemStack is = market.deserializeItemStack(listing.getString("Item")).get();

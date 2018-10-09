@@ -2,7 +2,7 @@ package com.kookykraftmc.market;
 
 import org.spongepowered.api.item.inventory.ItemStack;
 
-import java.util.*;
+import java.util.Comparator;
 
 /**
  * Created by TimeTheCat on 7/18/2017.

@@ -14,6 +14,7 @@ import org.spongepowered.api.entity.living.player.Player;
  */
 public class ListingsCommand implements CommandExecutor {
     private final Market pl = Market.instance;
+
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (pl.isHuskyUILoaded()) {
@@ -21,7 +22,8 @@ public class ListingsCommand implements CommandExecutor {
                 if (args.hasAny("g")) pl.getDataStore().getListingsPagination().sendTo(src);
                 else UIManager.getStateContainer(pl.getDataStore().getListings()).launchFor((Player) src);
             } else {
-                if (args.hasAny("g")) UIManager.getStateContainer(pl.getDataStore().getListings()).openState((Player) src, "0");
+                if (args.hasAny("g"))
+                    UIManager.getStateContainer(pl.getDataStore().getListings()).openState((Player) src, "0");
                 else pl.getDataStore().getListingsPagination().sendTo(src);
             }
         } else {

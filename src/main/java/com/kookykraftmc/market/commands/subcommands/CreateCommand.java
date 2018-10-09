@@ -20,6 +20,7 @@ import java.util.Optional;
  */
 public class CreateCommand implements CommandExecutor {
     private final Market pl = Market.instance;
+
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (src instanceof ConsoleSource) return CommandResult.success();

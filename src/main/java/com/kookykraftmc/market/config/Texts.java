@@ -70,6 +70,18 @@ public class Texts {
 
     @Setting("Failed To Remove From Blacklist")
     public static Text BLACKLIST_REMOVED_FAIL = Text.builder().color(TextColors.RED).append(Text.of("Failed to remove from the blacklist, please make sure the id is correct.")).build();
+    @Setting("Add To Blacklist")
+    public static TextTemplate ADD_TO_BLACKLIST = TextTemplate.of(
+            TextColors.GREEN, "Added ",
+            TextColors.WHITE, arg("id"),
+            TextColors.GREEN, " to the market blacklist."
+    );
+    @Setting("GUI Item Lore")
+    public static TextTemplate guiListing = TextTemplate.of(
+            TextColors.GREEN, "$", arg("Price").color(TextColors.GREEN),
+            TextColors.WHITE, " for ",
+            TextColors.GREEN, arg("Quantity").color(TextColors.GREEN), "x"
+    );
 
     public static Text quickItemFormat(ItemStack value) {
         return Text.builder()
@@ -80,18 +92,4 @@ public class Texts {
                 .onHover(TextActions.showItem(value.createSnapshot()))
                 .build();
     }
-
-    @Setting("Add To Blacklist")
-    public static TextTemplate ADD_TO_BLACKLIST = TextTemplate.of(
-            TextColors.GREEN, "Added ",
-            TextColors.WHITE, arg("id"),
-            TextColors.GREEN, " to the market blacklist."
-    );
-
-    @Setting("GUI Item Lore")
-    public static TextTemplate guiListing = TextTemplate.of(
-            TextColors.GREEN, "$", arg("Price").color(TextColors.GREEN),
-            TextColors.WHITE, " for ",
-            TextColors.GREEN, arg("Quantity").color(TextColors.GREEN), "x"
-    );
 }
