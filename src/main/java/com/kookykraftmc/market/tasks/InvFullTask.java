@@ -5,6 +5,7 @@ import com.kookykraftmc.market.config.Texts;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.entity.Hotbar;
+import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
 import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResult;
 import org.spongepowered.api.item.inventory.type.GridInventory;
 
@@ -25,7 +26,7 @@ public class InvFullTask implements Runnable {
 
     @Override
     public void run() {
-        InventoryTransactionResult offer = player.getInventory().query(Hotbar.class, GridInventory.class).offer(item);
+        InventoryTransactionResult offer = player.getInventory().query(QueryOperationTypes.INVENTORY_TYPE.of(Hotbar.class), QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class)).offer(item);
         if (!offer.getType().equals(InventoryTransactionResult.Type.SUCCESS)) {
             player.sendMessage(Texts.INV_FULL);
             pl.getScheduler().createTaskBuilder()

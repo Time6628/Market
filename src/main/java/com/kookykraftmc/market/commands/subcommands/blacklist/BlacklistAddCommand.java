@@ -34,7 +34,7 @@ public class BlacklistAddCommand implements CommandExecutor {
                 if (bs.isPresent()) {
                     id = bs.get().getId();
                 }
-            } else id = si.getItem().getId();
+            } else id = si.getType().getId();
             boolean s = pl.getDataStore().blacklistAddCmd(id);
             if (s) {
                 src.sendMessage(Texts.ADD_TO_BLACKLIST.apply(Collections.singletonMap("id", id)).build());

@@ -14,7 +14,7 @@ public class BlackListCommand implements CommandExecutor {
     private final Market pl = Market.instance;
 
     @Override
-    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+    public CommandResult execute(CommandSource src, CommandContext args) {
         pl.getDataStore().getBlacklistedItemList().sendTo(src);
         return CommandResult.success();
     }

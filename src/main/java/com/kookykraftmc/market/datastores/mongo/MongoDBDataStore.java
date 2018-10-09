@@ -305,7 +305,7 @@ public class MongoDBDataStore implements MarketDataStore {
                 Text.Builder l = Text.builder();
                 Optional<ItemStack> is = market.deserializeItemStack(document.getString("Item"));
                 if (!is.isPresent()) return;
-                if (is.get().getItem().equals(itemType)) {
+                if (is.get().getType().equals(itemType)) {
                     l.append(Texts.quickItemFormat(is.get()));
                     l.append(Text.of(" "));
                     l.append(Text.of(TextColors.WHITE, "@"));

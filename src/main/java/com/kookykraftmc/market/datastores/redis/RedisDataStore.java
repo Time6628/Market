@@ -332,8 +332,8 @@ public class RedisDataStore implements MarketDataStore {
 
     @Override
     public boolean isBlacklisted(ItemStack itemStack) {
-        Optional<BlockType> type = itemStack.getItem().getBlock();
-        String id = type.map(blockType -> blockType.getDefaultState().getId()).orElseGet(() -> itemStack.getItem().getId());
+        Optional<BlockType> type = itemStack.getType().getBlock();
+        String id = type.map(blockType -> blockType.getDefaultState().getId()).orElseGet(() -> itemStack.getType().getId());
         return blacklistedItems.contains(id);
     }
 
@@ -361,7 +361,7 @@ public class RedisDataStore implements MarketDataStore {
                 Text.Builder l = Text.builder();
                 Optional<ItemStack> is = plugin.deserializeItemStack(listing.get("Item"));
                 if (!is.isPresent()) continue;
-                if (is.get().getItem().equals(itemType)) {
+                if (is.get().getType().equals(itemType)) {
                     l.append(Texts.quickItemFormat(is.get()));
                     l.append(Text.of(" "));
                     l.append(Text.of(TextColors.WHITE, "@"));

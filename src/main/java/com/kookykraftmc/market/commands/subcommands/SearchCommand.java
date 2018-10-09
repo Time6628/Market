@@ -23,7 +23,7 @@ public class SearchCommand implements CommandExecutor {
     private static final Market pl = Market.instance;
 
     @Override
-    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+    public CommandResult execute(CommandSource src, CommandContext args) {
         List<Text> texts = new ArrayList<>();
         texts.add(Text.builder().onClick(TextActions.suggestCommand("/market search name ")).append(Text.of("name - Search for a seller by their name.")).build());
         texts.add(Text.builder().onClick(TextActions.suggestCommand("/market search item ")).append(Text.of("item - Search for an item id. (Careful with tabbing this one, may freeze your game.)")).build());

@@ -15,7 +15,7 @@ public class MarketCommand implements CommandExecutor {
     private final Market pl = Market.instance;
 
     @Override
-    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+    public CommandResult execute(CommandSource src, CommandContext args) {
 
         pl.getPaginationService().builder().title(Texts.MARKET_BASE).contents(pl.getCommands()).sendTo(src);
 

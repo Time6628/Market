@@ -16,7 +16,7 @@ public class ListingsCommand implements CommandExecutor {
     private final Market pl = Market.instance;
 
     @Override
-    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+    public CommandResult execute(CommandSource src, CommandContext args) {
         if (pl.isHuskyUILoaded()) {
             if (pl.isChestGUIDefault()) {
                 if (args.hasAny("g")) pl.getDataStore().getListingsPagination().sendTo(src);

@@ -33,9 +33,9 @@ import java.util.stream.Collectors;
 public class DynamoDBDataStore implements MarketDataStore {
 
     private final Market market = Market.instance;
-    private AmazonDynamoDBAsync client = null;
-    private DynamoDB dynamoDB;
-    private DynamoDBMapper mapper;
+    private AmazonDynamoDBAsync client;
+    private final DynamoDB dynamoDB;
+    private final DynamoDBMapper mapper;
 
     public DynamoDBDataStore(MarketConfig.DynamoDataStoreConfig config) {
         AmazonDynamoDBAsyncClientBuilder builder = AmazonDynamoDBAsyncClientBuilder.standard();
@@ -150,6 +150,7 @@ public class DynamoDBDataStore implements MarketDataStore {
         PaginatedScanList<DynamoDBListing> listing = mapper.scan(DynamoDBListing.class, dbse);
         List<Text> texts = new ArrayList<>();
         listing.get(0).getValues().forEach((key, value) -> {
+            if (!market.deserializeItemStack(value).isPresent()) return;
             switch (key) {
                 case "Item":
                     texts.add(Texts.quickItemFormat(market.deserializeItemStack(value).get()));
@@ -188,8 +189,9 @@ public class DynamoDBDataStore implements MarketDataStore {
         if (listing == null) return false;
         else if (!listing.getSeller().equals(uuid.toString())) return false;
         else {
-            ItemStack listingStack = market.deserializeItemStack(listing.getItemStack()).get();
-            if (market.matchItemStacks(listingStack, itemStack)) {
+            Optional<ItemStack> listingStack = market.deserializeItemStack(listing.getItemStack());
+            if (!listingStack.isPresent()) return false;
+            if (market.matchItemStacks(listingStack.get(), itemStack)) {
                 int stock = listing.getStock();
                 int quan = itemStack.getQuantity() + stock;
                 listing.setStock(quan);

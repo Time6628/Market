@@ -71,14 +71,13 @@ public class Market {
     private MarketDataStore dataStore;
 
     private MarketConfig cfg;
-    private Texts texts;
 
     @Listener
     public void onPreInit(GamePreInitializationEvent event) {
         logger.info("Loading config...");
         ConfigLoader configLoader = new ConfigLoader(this);
         if (configLoader.loadConfig()) cfg = configLoader.getMarketConfig();
-        if (configLoader.loadTexts()) texts = configLoader.getTexts();
+        if (!configLoader.loadTexts()) logger.error("Unable to load messages config.");
     }
 
     @Listener
@@ -87,16 +86,20 @@ public class Market {
         marketCause = Cause.of(EventContext.builder().build(), this);
         serverName = cfg.server;
 
-        if (cfg.dataStore.equals("redis")) {
-            getLogger().info("Redis enabled.");
-            RedisKeys.UUID_CACHE = cfg.redis.keys.uuidCache;
-            this.dataStore = new RedisDataStore(cfg.redis);
-        } else if (cfg.dataStore.equals("mongo")) {
-            getLogger().info("MongoDB enabled.");
-            this.dataStore = new MongoDBDataStore(cfg.mongo);
-        } else if (cfg.dataStore.equals("dynamo")) {
-            getLogger().info("DynamoDB enabled.");
-            this.dataStore = new DynamoDBDataStore(cfg.dynamodb);
+        switch (cfg.dataStore) {
+            case "redis":
+                getLogger().info("Redis enabled.");
+                RedisKeys.UUID_CACHE = cfg.redis.keys.uuidCache;
+                this.dataStore = new RedisDataStore(cfg.redis);
+                break;
+            case "mongo":
+                getLogger().info("MongoDB enabled.");
+                this.dataStore = new MongoDBDataStore(cfg.mongo);
+                break;
+            case "dynamo":
+                getLogger().info("DynamoDB enabled.");
+                this.dataStore = new DynamoDBDataStore(cfg.dynamodb);
+                break;
         }
 
         game.getServiceManager().setProvider(this, MarketDataStore.class, dataStore);

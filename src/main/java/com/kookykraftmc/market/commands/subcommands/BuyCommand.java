@@ -11,6 +11,7 @@ import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.entity.Hotbar;
+import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
 import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResult;
 import org.spongepowered.api.item.inventory.type.GridInventory;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -26,7 +27,7 @@ public class BuyCommand implements CommandExecutor {
     private final Market pl = Market.instance;
 
     @Override
-    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+    public CommandResult execute(CommandSource src, CommandContext args) {
         Optional<String> id = args.getOne(Text.of("id"));
         if (id.isPresent()) {
             Player player = (Player) src;
@@ -35,7 +36,7 @@ public class BuyCommand implements CommandExecutor {
                 ItemStack a = pl.getDataStore().purchase(acc.get(), id.get());
                 if (a == null) player.sendMessage(Texts.NO_BUY_ITEM);
                 else {
-                    InventoryTransactionResult offer = player.getInventory().query(Hotbar.class, GridInventory.class).offer(a);
+                    InventoryTransactionResult offer = player.getInventory().query(QueryOperationTypes.INVENTORY_TYPE.of(Hotbar.class), QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class)).offer(a);
                     if (!offer.getType().equals(InventoryTransactionResult.Type.SUCCESS)) {
                         player.sendMessage(Texts.INV_FULL);
                         pl.getScheduler().createTaskBuilder()
