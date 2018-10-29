@@ -14,7 +14,7 @@ Multi-Server support
 - A Redis Server.
 ### Optional for 0.2:
  - (Optional) [HuskykUI](https://forums.spongepowered.org/t/huskyui-a-simple-fast-ui-system-for-plugins/19557) Plugin for chest GUI listings.
- - (Optional) Use MongoDB instead of Redis.
+ - (Optional) Use MongoDB or DynamoDB instead of Redis.
  
 ## Commands:
 ### User Commands:
@@ -35,20 +35,16 @@ Multi-Server support
 ### Other Permissions:
 - market.command.staff.removelisting - Allows staff to remove listings that aren’t there’s.
 
-Discord: https://discord.gg/yUJc9G72
+Discord: https://discord.gg/yUJc9G7
 
 ## Support Me:
-Enjoying the plugin? You can support me here: https://www.paypal.me/KookyKraftMCNetwork1
+Enjoying the plugin? You can support me here: https://www.paypal.me/KookyKraftMCNetwork
 
 ## Known Issues:
- - Some items do not get saved correctly, causing them to appear as something different or lose their data.
+ - No file based db.
  
 ## Planned Features:
- - Server(Infinite) Listings
- 
-## FAQ:
-**Q: Why not a block based shop plugin?**
-A: I feel that block(chest/sign) based plugins are holding economy plugins back as they limit what the possibilities you can do with them and how you use them. With block based shops you often have problems with scamming due to hiding text or other things. With a chat based GUI, I can clearly display what the item is, to ensure that the player is getting what they are paying for.
+ - Server(Infinite) Listings.
 
 Screenshots
 Base command result:
