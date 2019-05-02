@@ -23,19 +23,19 @@ public class UIBuilder {
     public static StateContainer getStateContainer(List<Listing> listings) {
         StateContainer sc = new StateContainer();
         //State initalState = null;
+        Page.PageBuilder p = Page.builder()
+                .setAutoPaging(true)
+                .setTitle(Texts.MARKET_BASE)
+                .setInventoryDimension(InventoryDimension.of(9, 6))
+                .setEmptyStack(ItemStack.builder()
+                        .itemType(ItemTypes.STAINED_GLASS_PANE)
+                        .add(Keys.DYE_COLOR, DyeColors.GREEN)
+                        .add(Keys.DISPLAY_NAME, Text.of("")
+                        ).build());
         for (Listing listing : listings) {
-            Page.PageBuilder p = Page.builder()
-                    .setAutoPaging(true)
-                    .setTitle(Texts.MARKET_BASE)
-                    .setInventoryDimension(InventoryDimension.of(9, 6))
-                    .setEmptyStack(ItemStack.builder()
-                            .itemType(ItemTypes.STAINED_GLASS_PANE)
-                            .add(Keys.DYE_COLOR, DyeColors.GREEN)
-                            .add(Keys.DISPLAY_NAME, Text.of("")
-                            ).build());
             p.addElement(getElementFromListing(listing, sc));
-            sc.addState(p.build("Main Market"));
         }
+        sc.addState(p.build("Main Market"));
         return sc;
     }
 
